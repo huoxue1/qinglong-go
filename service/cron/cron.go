@@ -39,7 +39,9 @@ func UpdateCron(c1 *models.Crontabs) error {
 	crontabs.Updatedat = time.Now().Format(time.RFC3339)
 
 	c, _ := manager.Load(c1.Id)
-	c.(*cron.Cron).Stop()
+	if c != nil {
+		c.(*cron.Cron).Stop()
+	}
 	AddTask(c1)
 
 	return models.UpdateCron(crontabs)

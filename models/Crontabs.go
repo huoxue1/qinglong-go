@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"xorm.io/builder"
 )
 
@@ -56,6 +57,16 @@ func FindAllEnableCron() []*Crontabs {
 	return crontabs
 }
 
+func GetCronByCommand(command string) (*Crontabs, error) {
+	cron := new(Crontabs)
+	count, _ := engine.Where("command=?", command).Count(cron)
+	if count < 1 {
+		return nil, errors.New("not found")
+	}
+	_, err := engine.Where("command=?", command).Get(cron)
+	return cron, err
+}
+
 func GetCron(id int) (*Crontabs, error) {
 	cron := new(Crontabs)
 	_, err := engine.ID(id).Get(cron)
@@ -79,4 +90,13 @@ func UpdateCron(cron *Crontabs) error {
 func DeleteCron(id int) error {
 	_, err := engine.Table(new(Crontabs)).Delete(&Crontabs{Id: id})
 	return err
+}
+
+func Count(searchValue string) int64 {
+	count, _ := engine.Table(new(Crontabs)).
+		Where(
+			builder.Like{"name", "%" + searchValue + "%"}.
+				Or(builder.Like{"command", "%" + searchValue + "%"})).
+		Count()
+	return count
 }

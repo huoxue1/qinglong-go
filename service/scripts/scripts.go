@@ -1,6 +1,12 @@
 package scripts
 
-import "os"
+import (
+	"bytes"
+	"github.com/huoxue1/qinglong-go/utils"
+	"os"
+	"path"
+	"sort"
+)
 
 type File struct {
 	Key      string  `json:"key"`
@@ -11,48 +17,38 @@ type File struct {
 	Children []*File `json:"children"`
 }
 
-func GetFiles() []*File {
-	var files []*File
-	dir, err := os.ReadDir("data/scripts/")
+var (
+	excludedFiles = []string{
+		"node_modules",
+		"__pycache__",
+	}
+)
+
+func GetFiles(base, p string) []*File {
+	var files Files
+	dir, err := os.ReadDir(path.Join(base, p))
 	if err != nil {
 		return []*File{}
 	}
 	for _, entry := range dir {
+		if utils.In(entry.Name(), excludedFiles) {
+			continue
+		}
 		if entry.IsDir() {
 			f := &File{
-				Key:      entry.Name(),
-				Parent:   "",
+				Key:      path.Join(p, entry.Name()),
+				Parent:   p,
 				Title:    entry.Name(),
 				Type:     "directory",
 				IsLeaf:   true,
-				Children: []*File{},
-			}
-			twoDir, err := os.ReadDir("data/scripts/" + entry.Name())
-			if err != nil {
-				continue
-			}
-			for _, dirEntry := range twoDir {
-				f.Children = append(f.Children, &File{
-					Key:    entry.Name() + "/" + dirEntry.Name(),
-					Parent: entry.Name(),
-					Title:  dirEntry.Name(),
-					Type: func() string {
-						if dirEntry.IsDir() {
-							return "directory"
-						} else {
-							return "file"
-						}
-					}(),
-					IsLeaf:   true,
-					Children: []*File{},
-				})
+				Children: GetFiles(base, path.Join(p, entry.Name())),
 			}
 			files = append(files, f)
 
 		} else {
 			files = append(files, &File{
-				Key:      entry.Name(),
-				Parent:   "",
+				Key:      path.Join(p, entry.Name()),
+				Parent:   p,
 				Title:    entry.Name(),
 				Type:     "file",
 				IsLeaf:   true,
@@ -60,5 +56,26 @@ func GetFiles() []*File {
 			})
 		}
 	}
+	sort.Sort(files)
 	return files
+}
+
+type Files []*File
+
+func (a Files) Len() int { // 重写 Len() 方法
+	return len(a)
+}
+func (a Files) Swap(i, j int) { // 重写 Swap() 方法
+	a[i], a[j] = a[j], a[i]
+}
+func (a Files) Less(i, j int) bool { // 重写 Less() 方法， 从大到小排序
+	if a[i].Type != a[j].Type {
+		if a[i].Type == "file" {
+			return false
+		} else {
+			return true
+		}
+	} else {
+		return bytes.Compare([]byte(a[i].Title), []byte(a[j].Title)) > 0
+	}
 }

@@ -40,7 +40,7 @@ func get() gin.HandlerFunc {
 		}
 		ctx.JSON(200, res.Ok(gin.H{
 			"data":  crons,
-			"total": len(crons),
+			"total": models.Count(ctx.Query("searchValue")),
 		}))
 	}
 }

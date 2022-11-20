@@ -9,15 +9,15 @@ import (
 )
 
 func Api(group *gin.RouterGroup) {
-	group.GET("/", get())
+	group.GET("", get())
 }
 
 func get() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		_, err := os.Stat(path.Join("data", "config", "auth.json"))
-		exist := os.IsExist(err)
+		exist := os.IsNotExist(err)
 		ctx.JSON(200, res.Ok(system.System{
-			IsInitialized:  exist,
+			IsInitialized:  !exist,
 			Version:        "2.0.14",
 			LastCommitTime: "",
 			LastCommitId:   "",

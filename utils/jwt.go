@@ -3,14 +3,8 @@ package utils
 // jwt身份验证demo
 
 import (
-	"encoding/json"
-	"errors"
-	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/gin"
-	"github.com/huoxue1/qinglong-go/models"
-	"github.com/huoxue1/qinglong-go/utils/res"
-	"os"
-	"path"
+	"github.com/dgrijalva/jwt-go"
+	"math/rand"
 	"strings"
 	"time"
 )
@@ -24,9 +18,9 @@ type Claims struct {
 }
 
 // GenerateToken 生成token的函数
-func GenerateToken(userid string) (string, error) {
+func GenerateToken(userid string, hour int) (string, error) {
 	nowTime := time.Now()
-	expireTime := nowTime.Add(48 * time.Hour)
+	expireTime := nowTime.Add(time.Duration(hour) * time.Hour)
 
 	claims := Claims{
 		userid, // 自行添加的信息
@@ -59,68 +53,6 @@ func ParseToken(token string) (*Claims, error) {
 	return nil, err
 }
 
-var (
-	unExcludedPath = []string{
-		"/api/system",
-		"/api/user/login",
-		"/api/user/init",
-	}
-)
-
-func Jwt() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		for _, s := range unExcludedPath {
-			if strings.HasPrefix(ctx.Request.URL.Path, s) {
-				ctx.Next()
-				return
-			}
-		}
-
-		data, err := os.ReadFile(path.Join("data", "config", "auth.json"))
-		if err != nil {
-			ctx.Abort()
-			return
-		}
-		auth := new(models.AuthFile)
-		_ = json.Unmarshal(data, auth)
-		tokenHeader := ctx.GetHeader("Authorization")
-		if tokenHeader == "" {
-			ctx.JSON(401, res.Err(401, errors.New("no authorization token was found")))
-			ctx.Abort()
-			return
-		}
-		authToken := strings.Split(tokenHeader, " ")[1]
-
-		mobile := IsMobile(ctx.GetHeader("User-Agent"))
-		claims, _ := ParseToken(authToken)
-		if claims.ExpiresAt < time.Now().Unix() {
-			ctx.JSON(401, res.Err(401, errors.New("the authorization token is expired")))
-			ctx.Abort()
-			return
-		}
-		if mobile {
-			if authToken != auth.Tokens.Mobile && authToken != auth.Token {
-				ctx.JSON(401, res.Err(401, errors.New("the authorization token is error")))
-				ctx.Abort()
-				return
-			} else {
-				ctx.Next()
-				return
-			}
-		} else {
-			if authToken != auth.Tokens.Desktop && authToken != auth.Token {
-				ctx.JSON(401, res.Err(401, errors.New("the authorization token is error")))
-				ctx.Abort()
-				return
-			} else {
-				ctx.Next()
-				return
-			}
-		}
-
-	}
-}
-
 func IsMobile(userAgent string) bool {
 	if len(userAgent) == 0 {
 		return false
@@ -138,4 +70,14 @@ func IsMobile(userAgent string) bool {
 	}
 
 	return isMobile
+}
+
+func RandomString(n int) string {
+	var letter = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-?")
+	rand.Seed(time.Now().UnixMilli())
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letter[rand.Intn(len(letter))]
+	}
+	return string(b)
 }

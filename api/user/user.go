@@ -1,6 +1,7 @@
 package user
 
 import (
+	_ "embed"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/huoxue1/qinglong-go/models"
@@ -11,6 +12,9 @@ import (
 	"path"
 	"time"
 )
+
+//go:embed config_sample.sh
+var sample []byte
 
 func Api(group *gin.RouterGroup) {
 	group.GET("/", get())
@@ -37,6 +41,12 @@ func appInit() gin.HandlerFunc {
 			ctx.JSON(400, res.Err(400, err))
 			return
 		}
+		_ = os.MkdirAll(path.Join("data", "config"), 0666)
+		_ = os.MkdirAll(path.Join("data", "log"), 0666)
+		_ = os.MkdirAll(path.Join("data", "repo"), 0666)
+		_ = os.MkdirAll(path.Join("data", "scripts"), 0666)
+		_ = os.WriteFile(path.Join("data", "config", "config.sh"), sample, 0666)
+		_ = os.WriteFile(path.Join("data", "config", "config_sample.sh"), sample, 0666)
 		type Req struct {
 			UserName string `json:"username"`
 			Password string `json:"password"`
@@ -78,7 +88,7 @@ func login() gin.HandlerFunc {
 		auth := new(models.AuthFile)
 		_ = json.Unmarshal(data, auth)
 		if auth.Username == r.UserName && auth.Password == r.Password {
-			token, err := utils.GenerateToken(r.UserName)
+			token, err := utils.GenerateToken(r.UserName, 48)
 			if err != nil {
 				ctx.JSON(503, res.Err(503, err))
 				return

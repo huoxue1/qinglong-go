@@ -4,6 +4,7 @@ import (
 	log2 "github.com/huoxue1/qinglong-go/utils/log"
 	log "github.com/sirupsen/logrus"
 	_ "modernc.org/sqlite"
+	"os"
 	"xorm.io/xorm"
 )
 
@@ -12,7 +13,8 @@ var (
 )
 
 func init() {
-	en, err := xorm.NewEngine("sqlite", "./data/db/database.sqlite")
+	_ = os.MkdirAll("data/db", 0666)
+	en, err := xorm.NewEngine("sqlite", "data/db/database.sqlite")
 	if err != nil {
 		log.Errorln("[sql] " + err.Error())
 		return

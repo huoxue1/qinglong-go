@@ -11,13 +11,12 @@ import (
 	"github.com/huoxue1/qinglong-go/api/scripts"
 	"github.com/huoxue1/qinglong-go/api/subscription"
 	"github.com/huoxue1/qinglong-go/api/system"
-	"github.com/huoxue1/qinglong-go/api/user"
 )
 
-func Api(group *gin.RouterGroup) {
+func Open(group *gin.RouterGroup) {
+	group.GET("/auth/token", open.Auth())
 	system.Api(group.Group("/system"))
 	cron.Api(group.Group("/crons"))
-	user.Api(group.Group("/user"))
 	env.Api(group.Group("/envs"))
 	config.Api(group.Group("/configs"))
 	scripts.Api(group.Group("/scripts"))

@@ -19,7 +19,7 @@ func Api(group *gin.RouterGroup) {
 
 func get() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		files := scripts.GetFiles()
+		files := scripts.GetFiles(path2.Join("data", "scripts"), "")
 		ctx.JSON(200, res.Ok(files))
 	}
 }
