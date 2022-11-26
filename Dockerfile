@@ -49,5 +49,3 @@ RUN  chmod -R 777 /ql/qinglong-go
 EXPOSE 8080
 
 VOLUME ${QL_DIR}/data
-
-CMD  cd /ql && ./qinglong-go
