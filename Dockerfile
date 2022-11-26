@@ -44,10 +44,10 @@ RUN set -x \
 
 COPY ./dist/docker_linux_$TARGETARCH*/qinglong-go ${QL_DIR}/qinglong-go
 
-RUN  chmod -R 777 /ql
+RUN  chmod -R 777 "/ql/qinglong-go"
 
 EXPOSE 8080
 
 VOLUME ${QL_DIR}/data
 
-CMD sudo ./qinglong-go
+CMD  ./qinglong-go
