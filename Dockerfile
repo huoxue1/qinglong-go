@@ -2,6 +2,7 @@
 FROM python:alpine
 
 LABEL maintainer="${QL_MAINTAINER}"
+ARG TARGETARCH
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.local/share/pnpm/global/5/node_modules \
     LANG=zh_CN.UTF-8 \
