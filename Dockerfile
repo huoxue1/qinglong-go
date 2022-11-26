@@ -40,7 +40,9 @@ RUN set -x \
     && npm install -g yarn \
     && rm -rf /root/.cache \
     && rm -rf /root/.npm \
-    && mkdir -p ${QL_DIR}/data
+    && mkdir -p ${QL_DIR}/data \
+    && cd ${QL_DIR} \
+    && git clone https://github.com/whyour/qinglong-static.git ./static/
 
 COPY ./dist/docker_linux_$TARGETARCH*/qinglong-go ${QL_DIR}/ql
 
