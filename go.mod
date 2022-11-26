@@ -11,7 +11,7 @@ require (
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.9.0
-	modernc.org/sqlite v1.19.4
+	modernc.org/sqlite v1.15.2
 	xorm.io/builder v0.3.11-0.20220531020008-1bd24a7dc978
 	xorm.io/xorm v1.3.2
 )
