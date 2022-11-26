@@ -40,7 +40,7 @@ RUN set -x \
     && npm install -g yarn \
     && rm -rf /root/.cache \
     && rm -rf /root/.npm \
-    && mkdir -p ${QL_DIR}/data \
+    && mkdir -p ${QL_DIR}/data
 
 COPY ./dist/docker_linux_$TARGETARCH*/qinglong-go ${QL_DIR}/ql
 
@@ -51,4 +51,4 @@ EXPOSE 8080
 VOLUME ${QL_DIR}/data
 
 
-CMD cd /ql && chmod -R 777 ./ql && ql
+CMD cd /ql && chmod -R 777 ./ql && ./ql
