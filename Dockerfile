@@ -50,4 +50,4 @@ EXPOSE 8080
 
 VOLUME ${QL_DIR}/data
 
-CMD ./qinglong-go
+CMD sudo ./qinglong-go
