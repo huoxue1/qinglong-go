@@ -8,6 +8,10 @@ import (
 	"path"
 )
 
+var (
+	VERSION = "UNKNOWN"
+)
+
 func Api(group *gin.RouterGroup) {
 	group.GET("", get())
 }
@@ -18,7 +22,7 @@ func get() gin.HandlerFunc {
 		exist := os.IsNotExist(err)
 		ctx.JSON(200, res.Ok(system.System{
 			IsInitialized:  !exist,
-			Version:        "2.0.14",
+			Version:        VERSION,
 			LastCommitTime: "",
 			LastCommitId:   "",
 			Branch:         "master",

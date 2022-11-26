@@ -129,16 +129,28 @@ func runCron(crontabs *models.Crontabs) {
 }
 
 func AddTask(crontabs *models.Crontabs) {
-	c := cron.New()
+	crons := strings.Split(crontabs.Schedule, " ")
+	var c *cron.Cron
+	if len(crons) == 5 {
+		c = cron.New()
+
+	} else if len(crons) == 6 {
+		c = cron.New(cron.WithParser(
+			cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)))
+	} else {
+		log.Errorf("the task %s cron %s is error", crontabs.Name, crontabs.Command)
+		return
+	}
 	_, err := c.AddFunc(crontabs.Schedule, func() {
 		runCron(crontabs)
 	})
 	if err != nil {
-		log.Errorln("添加task错误" + err.Error())
+		log.Errorln("添加task错误" + crontabs.Schedule + err.Error())
 		return
 	}
 	c.Start()
 	manager.Store(crontabs.Id, c)
+
 }
 
 func handCommand(command string) *task {
@@ -189,32 +201,3 @@ func handCommand(command string) *task {
 	}
 	return ta
 }
-
-//type myWriter struct {
-//	fileName string
-//}
-//
-//func (m *myWriter) Write(p []byte) (n int, err error) {
-//	file, _ := os.OpenFile(m.fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-//	n, err = file.Write(p)
-//	file.Close()
-//	return n, err
-//}
-//
-////通过管道同步获取日志的函数
-//func syncLog(reader io.ReadCloser, writer io.Writer) {
-//	buf := make([]byte, 1)
-//	for {
-//		strNum, err := reader.Read(buf)
-//		if strNum > 0 {
-//			outputByte := buf[:strNum]
-//			writer.Write(outputByte)
-//		}
-//		if err != nil {
-//			//读到结尾
-//			if err == io.EOF || strings.Contains(err.Error(), "file already closed") {
-//				return
-//			}
-//		}
-//	}
-//}

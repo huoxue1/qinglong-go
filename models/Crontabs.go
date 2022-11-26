@@ -48,6 +48,13 @@ func QueryRunningCron() ([]*Crontabs, error) {
 	return crontabs, err
 }
 
+func QueryCronByDir(dir string) ([]*Crontabs, error) {
+	crontabs := make([]*Crontabs, 0)
+	session := engine.Table(new(Crontabs)).Where(builder.Like{"command", "task " + dir + "%"})
+	err := session.Find(&crontabs)
+	return crontabs, err
+}
+
 func FindAllEnableCron() []*Crontabs {
 	crontabs := make([]*Crontabs, 0)
 	err := engine.Table(new(Crontabs)).Where("isdisabled=?", 0).Find(&crontabs)

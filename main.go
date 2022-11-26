@@ -3,6 +3,7 @@ package main
 import (
 	nested "github.com/Lyrics-you/sail-logrus-formatter/sailor"
 	"github.com/huoxue1/qinglong-go/controller"
+	"github.com/huoxue1/qinglong-go/service"
 	rotates "github.com/lestrrat-go/file-rotatelogs"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -12,7 +13,7 @@ import (
 )
 
 func init() {
-	w, err := rotates.New(path.Join("data", "logs", "%Y-%m-%d.log"), rotates.WithRotationTime(time.Hour*24))
+	w, err := rotates.New(path.Join("data", "log", "qinglong-go", "%Y-%m-%d.log"), rotates.WithRotationTime(time.Hour*24))
 	if err != nil {
 		log.Errorf("rotates init err: %v", err)
 		panic(err)
@@ -36,6 +37,7 @@ func init() {
 }
 
 func main() {
+	service.AppInit()
 	engine := controller.Router()
 	_ = engine.Run(":8080")
 }

@@ -16,6 +16,9 @@ import (
 //go:embed config_sample.sh
 var sample []byte
 
+//go:embed package_sample.json
+var pack []byte
+
 func Api(group *gin.RouterGroup) {
 	group.GET("/", get())
 	group.PUT("/init", appInit())
@@ -45,8 +48,11 @@ func appInit() gin.HandlerFunc {
 		_ = os.MkdirAll(path.Join("data", "log"), 0666)
 		_ = os.MkdirAll(path.Join("data", "repo"), 0666)
 		_ = os.MkdirAll(path.Join("data", "scripts"), 0666)
+		_ = os.MkdirAll(path.Join("data", "deps"), 0666)
+		_ = os.MkdirAll(path.Join("data", "raw"), 0666)
 		_ = os.WriteFile(path.Join("data", "config", "config.sh"), sample, 0666)
-		_ = os.WriteFile(path.Join("data", "config", "config_sample.sh"), sample, 0666)
+		_ = os.WriteFile(path.Join("data", "scripts", "package.json"), pack, 0666)
+		_ = os.WriteFile(path.Join("data", "config", "config.sample.sh"), sample, 0666)
 		type Req struct {
 			UserName string `json:"username"`
 			Password string `json:"password"`

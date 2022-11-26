@@ -3,6 +3,7 @@ package utils
 import (
 	log "github.com/sirupsen/logrus"
 	"io"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -47,4 +48,32 @@ func Copy(src, dest string) {
 			return
 		}
 	}
+}
+
+func DownloadFile(url, filePath string) error {
+	response, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(response.Body)
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
+	_, err = io.Copy(file, response.Body)
+	if err != nil {
+		return err
+	}
+	return nil
 }

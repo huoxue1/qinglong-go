@@ -8,6 +8,7 @@ import (
 	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/service/cron"
 	"github.com/huoxue1/qinglong-go/utils"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"os/exec"
@@ -45,12 +46,60 @@ func downloadFiles(subscriptions *models.Subscriptions) {
 		if err != nil {
 			return
 		}
-		addScripts(subscriptions)
+		if config.GetKey("AutoAddCron") == "true" {
+			addScripts(subscriptions)
+		} else {
+			log.Infoln("未配置自动添加定时任务，不添加任务！")
+		}
+
 		file, _ := os.OpenFile(subscriptions.LogPath, os.O_APPEND|os.O_RDWR, 0666)
 		file.WriteString(fmt.Sprintf("\n##执行结束..  %s，耗时0秒\n\n", time.Now().Format("2006-01-02 15:04:05")))
 		_ = file.Close()
 		subscriptions.Status = 1
 		models.UpdateSubscription(subscriptions)
+	} else if subscriptions.Type == "file" {
+		addRawFiles(subscriptions)
+	}
+}
+
+func addRawFiles(subscriptions *models.Subscriptions) {
+	subscriptions.LogPath = "data/log/" + time.Now().Format("2006-01-02") + "/" + subscriptions.Alias + "_" + uuid.New().String() + ".log"
+	subscriptions.Status = 0
+	file, _ := os.OpenFile(subscriptions.LogPath, os.O_CREATE|os.O_RDWR, 0666)
+	defer file.Close()
+	_ = models.UpdateSubscription(subscriptions)
+	defer func() {
+		subscriptions.Status = 1
+		_ = models.UpdateSubscription(subscriptions)
+	}()
+	err := utils.DownloadFile(subscriptions.Url, path.Join("data", "raw", subscriptions.Alias))
+	if err != nil {
+		_, _ = file.WriteString(err.Error() + "\n")
+		return
+	}
+	name, c, err := getSubCron(path.Join("data", "raw", subscriptions.Alias))
+	if err != nil {
+		_, _ = file.WriteString(err.Error() + "\n")
+		return
+	}
+	utils.Copy(path.Join("data", "raw", subscriptions.Alias), path.Join("data", "scripts", subscriptions.Alias))
+	if c != "" {
+		command, err := models.GetCronByCommand(fmt.Sprintf("task %s", subscriptions.Alias))
+		if err != nil {
+			file.WriteString("已添加新的定时任务  " + name + "\n")
+			_, _ = cron.AddCron(&models.Crontabs{
+				Name:      name,
+				Command:   fmt.Sprintf("task %s", subscriptions.Alias),
+				Schedule:  c,
+				Timestamp: time.Now().Format("Mon Jan 02 2006 15:04:05 MST"),
+				Status:    1,
+				Labels:    []string{},
+			})
+		} else {
+			command.Name = name
+			command.Schedule = c
+			_ = cron.UpdateCron(command)
+		}
 	}
 }
 
@@ -98,6 +147,11 @@ func addScripts(subscriptions *models.Subscriptions) {
 	if err != nil {
 		return
 	}
+	crontabs, _ := models.QueryCronByDir(subscriptions.Alias)
+	cronMap := make(map[string]*models.Crontabs, len(crontabs))
+	for _, crontab := range crontabs {
+		cronMap[crontab.Command] = crontab
+	}
 	for _, entry := range dir {
 		// 判断文件后缀
 		if !utils.In(strings.TrimPrefix(filepath.Ext(entry.Name()), "."), extensions) {
@@ -128,6 +182,7 @@ func addScripts(subscriptions *models.Subscriptions) {
 					command.Name = name
 					command.Schedule = c
 					_ = cron.UpdateCron(command)
+					delete(cronMap, command.Command)
 				}
 
 			}
@@ -137,6 +192,12 @@ func addScripts(subscriptions *models.Subscriptions) {
 			if depen.MatchString(entry.Name()) {
 				utils.Copy(path.Join("data", "repo", subscriptions.Alias, entry.Name()), path.Join("data", "scripts", subscriptions.Alias, entry.Name()))
 			}
+		}
+	}
+	if config.GetKey("AutoDelCron") == "true" {
+		for _, m := range cronMap {
+			file.WriteString("已删除失效的任务 " + m.Name + "\n")
+			models.DeleteCron(m.Id)
 		}
 	}
 }
@@ -159,5 +220,6 @@ func getSubCron(filePath string) (name string, cron string, err error) {
 	} else {
 		return "", "", errors.New("not found cron")
 	}
+	cron = strings.TrimPrefix(cron, " ")
 	return
 }

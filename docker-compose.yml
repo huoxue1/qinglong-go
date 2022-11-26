@@ -1,0 +1,16 @@
+version: "3.5"
+services:
+  xuexi-auto:
+    image: huoxue1/qinglong-go:latest
+    # 容器名
+    container_name: qinglong-go
+    environment:
+    # 时区
+      - TZ=Asia/Shanghai
+    # 配置文件路径
+    volumes:
+      - ./data:/ql/data
+    # 映射端口
+    ports:
+      - 8080:8080
+    restart: unless-stopped
