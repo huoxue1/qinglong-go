@@ -44,10 +44,10 @@ RUN set -x \
 
 COPY ./dist/docker_linux_$TARGETARCH*/qinglong-go ${QL_DIR}/qinglong-go
 
-RUN  ls /ql
+RUN  chmod -R 777 ./qinglong-go
 
 EXPOSE 8080
 
 VOLUME ${QL_DIR}/data
 
-CMD cd ${QL_DIR} && ./qinglong-go
+ENTRYPOINT ["./qinglong-go"]

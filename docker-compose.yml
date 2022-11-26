@@ -12,5 +12,5 @@ services:
       - ./data:/ql/data
     # 映射端口
     ports:
-      - 8080:8080
+      - 8378:8080
     restart: unless-stopped
