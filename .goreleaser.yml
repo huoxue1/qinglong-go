@@ -56,8 +56,6 @@ builds:
     goarch:
       - amd64
       - arm64
-      - 386
-      - arm
     mod_timestamp: "{{ .CommitTimestamp }}"
     flags:
       - -trimpath
