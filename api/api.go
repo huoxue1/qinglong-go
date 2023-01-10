@@ -12,6 +12,7 @@ import (
 	"github.com/huoxue1/qinglong-go/api/subscription"
 	"github.com/huoxue1/qinglong-go/api/system"
 	"github.com/huoxue1/qinglong-go/api/user"
+	"github.com/huoxue1/qinglong-go/api/ws"
 )
 
 func Api(group *gin.RouterGroup) {
@@ -25,4 +26,5 @@ func Api(group *gin.RouterGroup) {
 	subscription.Api(group.Group("/subscriptions"))
 	logs.APi(group.Group("/logs"))
 	dependencies.Api(group.Group("/dependencies"))
+	ws.Api(group.Group("/ws"))
 }

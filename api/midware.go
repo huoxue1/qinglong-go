@@ -76,14 +76,25 @@ func Jwt() gin.HandlerFunc {
 		_ = json.Unmarshal(data, auth)
 		tokenHeader := ctx.GetHeader("Authorization")
 		if tokenHeader == "" {
-			ctx.JSON(401, res.Err(401, errors.New("no authorization token was found")))
-			ctx.Abort()
-			return
+			queryToken, b := ctx.GetQuery("token")
+			if b {
+				tokenHeader = "Bearer " + queryToken
+			} else {
+				ctx.JSON(401, res.Err(401, errors.New("no authorization token was found")))
+				ctx.Abort()
+				return
+			}
+
 		}
 		authToken := strings.Split(tokenHeader, " ")[1]
 
 		mobile := utils.IsMobile(ctx.GetHeader("User-Agent"))
-		claims, _ := utils.ParseToken(authToken)
+		claims, err := utils.ParseToken(authToken)
+		if err != nil {
+			ctx.JSON(401, res.Err(401, errors.New("the authorization fail")))
+			ctx.Abort()
+			return
+		}
 		if claims.ExpiresAt < time.Now().Unix() {
 			ctx.JSON(401, res.Err(401, errors.New("the authorization token is expired")))
 			ctx.Abort()

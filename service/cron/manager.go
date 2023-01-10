@@ -158,13 +158,13 @@ func handCommand(command string) *task {
 	commands := strings.Split(command, " ")
 	if commands[0] == "task" {
 		if strings.HasSuffix(commands[1], ".py") {
-			ta.cmd = "python " + commands[1]
+			ta.cmd = "poetry run python " + commands[1]
 		} else if strings.HasSuffix(commands[1], ".js") {
 			ta.cmd = "node " + commands[1]
 		} else if strings.HasSuffix(commands[1], ".sh") {
 			ta.cmd = "bash " + commands[1]
 		} else if strings.HasSuffix(commands[1], ".ts") {
-			ta.cmd = "ts-node-transpile-only data/scripts/" + commands[1]
+			ta.cmd = "ts-node-transpile-only " + commands[1]
 		}
 		if len(commands) > 2 {
 			if commands[2] == "now" {

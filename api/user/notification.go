@@ -1,0 +1,39 @@
+package user
+
+import (
+	"encoding/json"
+	"github.com/gin-gonic/gin"
+	"github.com/huoxue1/qinglong-go/service/notification"
+	"github.com/huoxue1/qinglong-go/utils/res"
+	"os"
+	"path"
+)
+
+func getNotification() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		data, err := os.ReadFile(path.Join("data", "config", "push.json"))
+		if err != nil {
+			ctx.JSON(502, res.Err(502, err))
+			return
+		}
+		m := make(map[string]interface{}, 5)
+		_ = json.Unmarshal(data, &m)
+		ctx.JSON(200, res.Ok(m))
+	}
+}
+
+func putNotification() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		data, err := ctx.GetRawData()
+		if err != nil {
+			ctx.JSON(403, res.Err(403, err))
+			return
+		}
+		err = notification.HandlePush(string(data))
+		if err != nil {
+			ctx.JSON(502, res.Err(502, err))
+			return
+		}
+		ctx.JSON(200, res.Ok(true))
+	}
+}
