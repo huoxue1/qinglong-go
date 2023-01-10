@@ -8,11 +8,8 @@ import (
 	"github.com/imroc/req/v3"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
-	"net/http"
-	"net/url"
 	"os"
 	"path"
-	"strings"
 )
 
 type Pusher interface {
@@ -42,6 +39,39 @@ func init() {
 	_ = Push.Send("上线通知", "你的青龙已上线！")
 }
 
+func parsePush(config string) (Pusher, error) {
+	t := gjson.Get(config, "type").String()
+	log.Infoln("采用全局推送方式： ", t)
+	switch t {
+	case "telegramBot":
+		return getBot[TgBot](config)
+
+	case "goCqHttpBot":
+		return getBot[goCqHttpBot](config)
+
+	case "serverChan":
+		return getBot[ServerChan](config)
+
+	case "pushDeer":
+		return getBot[pushDeer](config)
+
+	case "gotify":
+		return getBot[gotify](config)
+
+	default:
+		return nil, errors.New("not found type")
+	}
+}
+
+func getBot[T any](config string) (*T, error) {
+	bot := new(T)
+	err := json.Unmarshal([]byte(config), bot)
+	if err != nil {
+		return nil, err
+	}
+	return bot, nil
+}
+
 type defaultPush struct {
 }
 
@@ -67,99 +97,17 @@ type goCqHttpBot struct {
 	GoCqHttpBotQq    string `json:"goCqHttpBotQq"`
 }
 
-func (g *goCqHttpBot) Send(title, message string) error {
-	sendUrl, err := url.Parse(g.GoCqHttpBotUrl)
-	if err != nil {
-		return err
-	}
-	if strings.Contains(sendUrl.Path, "send_private_msg") {
-		sendUrl.Path = ""
-		resp, err := client.R().SetHeader("Authorization", g.GoCqHttpBotToken).SetBodyJsonMarshal(map[string]any{
-			"action": "send_private_msg",
-			"params": map[string]any{
-				"user_id": g.GoCqHttpBotQq,
-				"message": map[string]any{
-					"type": "text",
-					"data": map[string]any{
-						"text": fmt.Sprintf("%s\n\n%s", title, message),
-					},
-				},
-			},
-		}).Post(sendUrl.String())
-		log.Infoln(resp.String())
-		if err != nil {
-			return err
-		}
-	} else {
-		sendUrl.Path = ""
-		resp, err := client.R().SetHeader("Authorization", g.GoCqHttpBotToken).SetBodyJsonMarshal(map[string]any{
-			"action": "send_group_msg",
-			"params": map[string]any{
-				"group_id": g.GoCqHttpBotQq,
-				"message": map[string]any{
-					"type": "text",
-					"data": map[string]any{
-						"text": fmt.Sprintf("%s\n\n%s", title, message),
-					},
-				},
-			},
-		}).Post(sendUrl.String())
-		log.Infoln(resp.String())
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+type ServerChan struct {
+	Type          string `json:"type"`
+	ServerChanKey string `json:"serverChanKey"`
 }
 
-func (t *TgBot) Send(title, message string) error {
-	if t.TelegramBotApiHost == "" {
-		t.TelegramBotApiHost = "api.telegram.org"
-	}
-	if t.TelegramBotProxyHost != "" {
-		client.SetProxyURL(fmt.Sprintf("http://%v@%v:%v", t.TelegramBotProxyAuth, t.TelegramBotProxyHost, t.TelegramBotProxyPort))
-	} else {
-		client.SetProxy(http.ProxyFromEnvironment)
-	}
-	response, err := client.R().SetFormData(map[string]string{
-		"chat_id":                  t.TelegramBotUserId,
-		"text":                     fmt.Sprintf("%s\n\n%s", title, message),
-		"disable_web_page_preview": "true",
-	}).Post(fmt.Sprintf("https://%s/bot%s/sendMessage", t.TelegramBotApiHost, t.TelegramBotToken))
-	if err != nil {
-		return err
-	}
-	if gjson.GetBytes(response.Bytes(), "ok").Bool() {
-		return nil
-	} else {
-		return errors.New(response.String())
-	}
+type pushDeer struct {
+	PushDeerKey string `json:"pushDeerKey"`
 }
 
-func parsePush(config string) (Pusher, error) {
-	t := gjson.Get(config, "type").String()
-	log.Infoln("采用全局推送方式： ", t)
-	switch t {
-	case "telegramBot":
-		{
-			bot := new(TgBot)
-			err := json.Unmarshal([]byte(config), bot)
-			if err != nil {
-				return nil, err
-			}
-			return bot, nil
-		}
-	case "goCqHttpBot":
-		{
-			bot := new(goCqHttpBot)
-			err := json.Unmarshal([]byte(config), bot)
-			if err != nil {
-				return nil, err
-			}
-			return bot, nil
-		}
-
-	default:
-		return nil, errors.New("not found type")
-	}
+type gotify struct {
+	GotifyUrl      string `json:"gotifyUrl"`
+	GotifyToken    string `json:"gotifyToken"`
+	GotifyPriority string `json:"gotifyPriority"`
 }

@@ -14,7 +14,7 @@ func Api(group *gin.RouterGroup) {
 
 func info() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{"websocket": true, "origins": []string{"*:*"}, "cookie_needed": false, "entropy": 3563341155})
+		ctx.JSON(200, gin.H{"websocket": true, "origins": []string{"*:*"}, "cookie_needed": false, "entropy": int64(3563341155)})
 	}
 }
 
