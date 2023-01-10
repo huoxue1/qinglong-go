@@ -4,7 +4,7 @@ FROM python:alpine
 LABEL maintainer="${QL_MAINTAINER}"
 ARG TARGETARCH
 
-ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.local/share/pnpm/global/5/node_modules \
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/local/go/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.local/share/pnpm/global/5/node_modules \
     LANG=zh_CN.UTF-8 \
     SHELL=/bin/bash \
     PS1="\u@\h:\w \$ " \
@@ -31,6 +31,9 @@ RUN set -x \
                              openssh \
                              npm \
     && rm -rf /var/cache/apk/* \
+    && wget https://studygolang.com/dl/golang/go1.19.4.linux-${TARGETARCH}.tar.gz \
+    && tar -C /usr/local -xzf go1.19.4.linux-${TARGETARCH}.tar.gz \
+    && rm -rf go1.19.4.linux-${TARGETARCH}.tar.gz \
     && apk update \
     && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone \
@@ -46,9 +49,9 @@ RUN set -x \
 
 COPY ./dist/docker_linux_$TARGETARCH*/qinglong-go ${QL_DIR}/ql
 
-RUN  chmod -R 777 /ql/ql && ls /ql
+RUN  chmod -R 777 /ql/ql
 
-EXPOSE 8080
+EXPOSE 5700
 
 VOLUME ${QL_DIR}/data
 
