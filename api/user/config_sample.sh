@@ -57,6 +57,18 @@ PipMirror="https://pypi.doubanio.com/simple/"
 ## 安装node依赖时指定npm源
 NpmMirror="https://registry.npmmirror.com"
 
+# 运行以.py结尾的文件时的命令
+PythonCmd="python"
+
+# 运行以.js结尾的文件时的命令
+JsCmd="node"
+
+# 运行以.ts结尾的文件时的命令
+TsCmd="ts-node-transpile-only"
+
+# 运行以.sh结尾的文件时的命令
+ShCmd="bash"
+
 ## 通知环境变量
 ## 1. Server酱
 ## https://sct.ftqq.com

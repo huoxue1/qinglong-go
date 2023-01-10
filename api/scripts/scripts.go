@@ -34,7 +34,7 @@ func put() gin.HandlerFunc {
 		r := new(Req)
 		err := ctx.ShouldBindJSON(r)
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		err = os.WriteFile(fmt.Sprintf("data/scripts/%s/%s", r.Path, r.FileName), []byte(r.Content), 0666)
@@ -57,7 +57,7 @@ func post() gin.HandlerFunc {
 		r := new(Req)
 		err := ctx.ShouldBind(r)
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		if r.Directory != "" {
@@ -111,7 +111,7 @@ func del() gin.HandlerFunc {
 		r := new(Req)
 		err := ctx.ShouldBindJSON(r)
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		if r.Type == "file" {

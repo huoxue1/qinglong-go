@@ -13,7 +13,7 @@ func getNotification() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		data, err := os.ReadFile(path.Join("data", "config", "push.json"))
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		m := make(map[string]interface{}, 5)
@@ -31,7 +31,7 @@ func putNotification() gin.HandlerFunc {
 		}
 		err = notification.HandlePush(string(data))
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		ctx.JSON(200, res.Ok(true))

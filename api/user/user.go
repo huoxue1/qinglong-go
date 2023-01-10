@@ -26,7 +26,7 @@ func Api(group *gin.RouterGroup) {
 	group.PUT("/init", appInit())
 	group.POST("/login", login())
 	group.POST("/logout", logout())
-
+	group.PUT("/notification/init", putNotification())
 	group.PUT("/notification", putNotification())
 	group.GET("/notification", getNotification())
 }
@@ -72,7 +72,7 @@ func appInit() gin.HandlerFunc {
 		r := new(Req)
 		err = ctx.ShouldBindJSON(r)
 		if err != nil {
-			ctx.JSON(502, res.ErrMessage(502, err.Error()))
+			ctx.JSON(503, res.ErrMessage(503, err.Error()))
 			return
 		}
 		m := new(models.AuthFile)
@@ -95,7 +95,7 @@ func login() gin.HandlerFunc {
 		r := new(Req)
 		err := ctx.ShouldBindJSON(r)
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		data, err := os.ReadFile(path.Join("data", "config", "auth.json"))

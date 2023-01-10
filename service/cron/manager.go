@@ -158,7 +158,7 @@ func handCommand(command string) *task {
 	commands := strings.Split(command, " ")
 	if commands[0] == "task" {
 		if strings.HasSuffix(commands[1], ".py") {
-			ta.cmd = "poetry run python " + commands[1]
+			ta.cmd = "python3 " + commands[1]
 		} else if strings.HasSuffix(commands[1], ".js") {
 			ta.cmd = "node " + commands[1]
 		} else if strings.HasSuffix(commands[1], ".sh") {

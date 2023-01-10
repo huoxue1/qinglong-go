@@ -18,7 +18,7 @@ func get() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		dependences, err := models.QueryDependences(ctx.Query("searchValue"))
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		ctx.JSON(200, res.Ok(dependences))
@@ -30,7 +30,7 @@ func post() gin.HandlerFunc {
 		var deps []*models.Dependences
 		err := ctx.ShouldBindJSON(&deps)
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		for _, dep := range deps {

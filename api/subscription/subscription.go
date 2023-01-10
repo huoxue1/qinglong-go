@@ -26,7 +26,7 @@ func run() gin.HandlerFunc {
 		var ids []int
 		err := ctx.ShouldBindJSON(&ids)
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		err = subscription.RunSubscription(ids)
@@ -43,7 +43,7 @@ func stop() gin.HandlerFunc {
 		var ids []int
 		err := ctx.ShouldBindJSON(&ids)
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		err = subscription.StopSubscription(ids)
@@ -75,7 +75,7 @@ func post() gin.HandlerFunc {
 		sub := new(models.Subscriptions)
 		err := ctx.ShouldBindJSON(sub)
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		id, err := subscription.AddSubscription(sub)
@@ -93,7 +93,7 @@ func enable() gin.HandlerFunc {
 		var ids []int
 		err := ctx.ShouldBindJSON(&ids)
 		if err != nil {
-			ctx.JSON(503, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		err = subscription.EnableSubscription(ids)
@@ -109,7 +109,7 @@ func disable() gin.HandlerFunc {
 		var ids []int
 		err := ctx.ShouldBindJSON(&ids)
 		if err != nil {
-			ctx.JSON(502, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		err = subscription.DisableSubscription(ids)
@@ -126,7 +126,7 @@ func put() gin.HandlerFunc {
 		s := new(models.Subscriptions)
 		err := ctx.ShouldBindJSON(s)
 		if err != nil {
-			ctx.JSON(503, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		err = subscription.UpdateSubscription(s)
@@ -143,7 +143,7 @@ func del() gin.HandlerFunc {
 		var ids []int
 		err := ctx.ShouldBindJSON(&ids)
 		if err != nil {
-			ctx.JSON(503, res.Err(502, err))
+			ctx.JSON(503, res.Err(503, err))
 			return
 		}
 		err = subscription.DeleteSubscription(ids)
