@@ -6,6 +6,8 @@ import (
 	"regexp"
 )
 
+var VERSION = "test"
+
 func GetKey(key string) string {
 	file, err := os.ReadFile(path.Join("data", "config", "config.sh"))
 	if err != nil {
@@ -17,4 +19,8 @@ func GetKey(key string) string {
 	}
 	datas := compile.FindAllStringSubmatch(string(file), 1)
 	return datas[0][1]
+}
+
+func GetVersion() string {
+	return VERSION
 }

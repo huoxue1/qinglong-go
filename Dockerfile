@@ -31,9 +31,6 @@ RUN set -x \
                              openssh \
                              npm \
     && rm -rf /var/cache/apk/* \
-    && wget https://studygolang.com/dl/golang/go1.19.4.linux-${TARGETARCH}.tar.gz \
-    && tar -C /usr/local -xzf go1.19.4.linux-${TARGETARCH}.tar.gz \
-    && rm -rf go1.19.4.linux-${TARGETARCH}.tar.gz \
     && apk update \
     && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone \

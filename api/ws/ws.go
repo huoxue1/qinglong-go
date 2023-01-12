@@ -3,7 +3,7 @@ package ws
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gobwas/ws"
-	"github.com/gobwas/ws/wsutil"
+	"github.com/huoxue1/qinglong-go/service/client"
 	"github.com/huoxue1/qinglong-go/utils/res"
 )
 
@@ -25,8 +25,7 @@ func wsHandle() gin.HandlerFunc {
 			ctx.JSON(502, res.Err(502, err))
 			return
 		}
-		writer := wsutil.NewWriter(conn, ws.StateServerSide, ws.OpText)
-		writer.Write([]byte("pong"))
-		writer.Flush()
+
+		client.AddWs(ctx.Param("id")+"_"+ctx.Param("name"), conn)
 	}
 }

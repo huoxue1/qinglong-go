@@ -15,6 +15,30 @@ func Api(group *gin.RouterGroup) {
 	group.POST("", post())
 	group.DELETE("", del())
 	group.GET("/:name", getFile())
+
+	group.PUT("/run", run())
+}
+
+func run() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		type Req struct {
+			Path     string `json:"path"`
+			FileName string `json:"filename"`
+			Content  string `json:"content"`
+		}
+		r := new(Req)
+		err := ctx.ShouldBindJSON(r)
+		if err != nil {
+			ctx.JSON(503, res.Err(503, err))
+			return
+		}
+		err = scripts.Run(path2.Join(r.Path, "_"+r.FileName), r.Content)
+		if err != nil {
+			ctx.JSON(503, res.Err(503, err))
+			return
+		}
+		ctx.JSON(200, res.Ok(true))
+	}
 }
 
 func get() gin.HandlerFunc {

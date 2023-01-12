@@ -19,6 +19,7 @@ var (
 		"/api/system",
 		"/api/user/login",
 		"/api/user/init",
+		"api/public/panel/log",
 	}
 )
 

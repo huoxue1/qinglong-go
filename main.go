@@ -39,5 +39,5 @@ func init() {
 func main() {
 	service.AppInit()
 	engine := controller.Router()
-	_ = engine.Run(":8080")
+	_ = engine.Run(":5700")
 }

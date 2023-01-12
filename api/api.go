@@ -8,6 +8,7 @@ import (
 	"github.com/huoxue1/qinglong-go/api/env"
 	"github.com/huoxue1/qinglong-go/api/logs"
 	"github.com/huoxue1/qinglong-go/api/open"
+	"github.com/huoxue1/qinglong-go/api/public"
 	"github.com/huoxue1/qinglong-go/api/scripts"
 	"github.com/huoxue1/qinglong-go/api/subscription"
 	"github.com/huoxue1/qinglong-go/api/system"
@@ -27,4 +28,5 @@ func Api(group *gin.RouterGroup) {
 	logs.APi(group.Group("/logs"))
 	dependencies.Api(group.Group("/dependencies"))
 	ws.Api(group.Group("/ws"))
+	public.Api(group.Group("/public"))
 }

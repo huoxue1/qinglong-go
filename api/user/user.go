@@ -111,6 +111,11 @@ func login() gin.HandlerFunc {
 				ctx.JSON(503, res.Err(503, err))
 				return
 			}
+			ip, err := user.GetNetIp(ctx.RemoteIP())
+			if err != nil {
+				ip = new(user.Ip)
+				err = nil
+			}
 			mobile := utils.IsMobile(ctx.GetHeader("User-Agent"))
 			if mobile {
 				auth.Tokens.Mobile = token
@@ -126,8 +131,8 @@ func login() gin.HandlerFunc {
 					"token":     token,
 					"platform":  "mobile",
 					"retries":   0,
-					"lastip":    "",
-					"lastaddr":  "",
+					"lastip":    ctx.RemoteIP(),
+					"lastaddr":  ip.Addr,
 					"lastlogon": time.Now().UnixNano(),
 				}))
 			} else {
@@ -144,9 +149,9 @@ func login() gin.HandlerFunc {
 					"token":     token,
 					"platform":  "desktop",
 					"retries":   0,
-					"lastip":    "",
-					"lastaddr":  "",
-					"lastlogon": time.Now().UnixNano(),
+					"lastip":    ctx.RemoteIP(),
+					"lastaddr":  ip.Addr,
+					"lastlogon": time.Now().Unix(),
 				}))
 			}
 		} else {

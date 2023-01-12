@@ -30,7 +30,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - -s -w -X main.VERSION=v{{.Version}}
+      - -s -w -X github.com/huoxue1/qinglong-go/service/config.VERSION=v{{.Version}}
   - id: win
     env:
       - CGO_ENABLED=0
@@ -46,7 +46,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - -s -w -X main.VERSION=v{{.Version}}
+      - -s -w -X github.com/huoxue1/qinglong-go/service/config.VERSION.VERSION=v{{.Version}}
   - id: docker
     env:
       - CGO_ENABLED=0
@@ -54,13 +54,17 @@ builds:
     goos:
       - linux
     goarch:
+      - 386
       - amd64
+      - arm
       - arm64
+    goarm:
+      - 7
     mod_timestamp: "{{ .CommitTimestamp }}"
     flags:
       - -trimpath
     ldflags:
-      - -s -w -X main.VERSION=v{{.Version}}
+      - -s -w -X github.com/huoxue1/qinglong-go/service/config.VERSION.VERSION=v{{.Version}}
 
 checksum:
   name_template: "{{ .ProjectName }}_checksums.txt"

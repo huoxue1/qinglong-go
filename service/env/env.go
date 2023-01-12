@@ -109,3 +109,16 @@ func LoadEnvFromFile(file string) map[string]string {
 	}
 	return result
 }
+
+func GetALlEnv() map[string]string {
+	envFromDb := LoadEnvFromDb()
+	envfromFile := LoadEnvFromFile("data/config/config.sh")
+	for s, s2 := range envfromFile {
+		if _, ok := envFromDb[s]; ok {
+			envFromDb[s] = envFromDb[s] + "&" + s2
+		} else {
+			envFromDb[s] = s2
+		}
+	}
+	return envFromDb
+}

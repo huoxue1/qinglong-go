@@ -20,7 +20,9 @@ func DeleteCron(ids []int) error {
 	for _, id := range ids {
 
 		c, _ := manager.Load(id)
-		c.(*cron.Cron).Stop()
+		if c != nil {
+			c.(*cron.Cron).Stop()
+		}
 
 		err := models.DeleteCron(id)
 		if err != nil {

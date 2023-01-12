@@ -2,14 +2,11 @@ package system
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/service/system"
 	"github.com/huoxue1/qinglong-go/utils/res"
 	"os"
 	"path"
-)
-
-var (
-	VERSION = "UNKNOWN"
 )
 
 func Api(group *gin.RouterGroup) {
@@ -22,10 +19,10 @@ func get() gin.HandlerFunc {
 		exist := os.IsNotExist(err)
 		ctx.JSON(200, res.Ok(system.System{
 			IsInitialized:  !exist,
-			Version:        VERSION,
+			Version:        config.GetVersion(),
 			LastCommitTime: "",
 			LastCommitId:   "",
-			Branch:         "master",
+			Branch:         "Main",
 		}))
 	}
 }

@@ -33,6 +33,9 @@ func get() gin.HandlerFunc {
 		filters := ctx.QueryMap("queryString")["filters"]
 		page, _ := strconv.Atoi(ctx.Query("page"))
 		size, _ := strconv.Atoi(ctx.Query("size"))
+		if size == 0 {
+			size = 1000
+		}
 		crons, err := cron.GetCrons(page, size, ctx.Query("searchValue"), sorter, filters)
 		if err != nil {
 			ctx.JSON(503, res.Err(503, err))
