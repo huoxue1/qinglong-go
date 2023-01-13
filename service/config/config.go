@@ -6,16 +6,16 @@ import (
 	"regexp"
 )
 
-var VERSION = "test"
+var VERSION = "v1.0.0"
 
-func GetKey(key string) string {
+func GetKey(key, defaultValue string) string {
 	file, err := os.ReadFile(path.Join("data", "config", "config.sh"))
 	if err != nil {
-		return ""
+		return defaultValue
 	}
 	compile := regexp.MustCompile(key + `="(.*?)"`)
 	if !compile.Match(file) {
-		return ""
+		return defaultValue
 	}
 	datas := compile.FindAllStringSubmatch(string(file), 1)
 	return datas[0][1]

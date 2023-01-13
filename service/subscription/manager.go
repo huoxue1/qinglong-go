@@ -46,7 +46,7 @@ func downloadFiles(subscriptions *models.Subscriptions) {
 		if err != nil {
 			return
 		}
-		if config.GetKey("AutoAddCron") == "true" {
+		if config.GetKey("AutoAddCron", "true") == "true" {
 			addScripts(subscriptions)
 		} else {
 			log.Infoln("未配置自动添加定时任务，不添加任务！")
@@ -141,7 +141,7 @@ func addScripts(subscriptions *models.Subscriptions) {
 	if subscriptions.Extensions != "" {
 		extensions = strings.Split(subscriptions.Extensions, " ")
 	} else {
-		extensions = strings.Split(config.GetKey("RepoFileExtensions"), " ")
+		extensions = strings.Split(config.GetKey("RepoFileExtensions", "js py sh"), " ")
 	}
 	dir, err := os.ReadDir(path.Join("data", "repo", subscriptions.Alias))
 	if err != nil {
@@ -194,7 +194,7 @@ func addScripts(subscriptions *models.Subscriptions) {
 			}
 		}
 	}
-	if config.GetKey("AutoDelCron") == "true" {
+	if config.GetKey("AutoDelCron", "true") == "true" {
 		for _, m := range cronMap {
 			file.WriteString("已删除失效的任务 " + m.Name + "\n")
 			models.DeleteCron(m.Id)

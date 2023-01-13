@@ -9,9 +9,13 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/local/go/bin:/usr/sbin:/usr/bin:/sb
     SHELL=/bin/bash \
     PS1="\u@\h:\w \$ " \
     QL_DIR=/ql \
-    QL_BRANCH=${QL_BRANCH}
+    QL_BRANCH=${QL_BRANCH} \
+    GO111MODULE=on \
+    GOPROXY=https://goproxy.cn
 
 WORKDIR ${QL_DIR}
+
+COPY --from=golang:1.18-alpine /usr/local/go/ /usr/local/go/
 
 RUN set -x \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
@@ -46,7 +50,6 @@ RUN set -x \
 
 COPY ./dist/docker_linux_$TARGETARCH*/qinglong-go ${QL_DIR}/ql
 
-RUN  chmod -R 777 /ql/ql
 
 EXPOSE 5700
 

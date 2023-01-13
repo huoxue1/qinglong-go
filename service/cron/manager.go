@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/huoxue1/qinglong-go/models"
+	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/service/env"
 	"github.com/huoxue1/qinglong-go/utils"
 	"github.com/robfig/cron/v3"
@@ -156,13 +157,18 @@ func AddTask(crontabs *models.Crontabs) {
 func handCommand(command string) *task {
 	ta := new(task)
 	commands := strings.Split(command, " ")
+
+	pythonCmd := config.GetKey("PythonCmd", "python")
+	JsCmd := config.GetKey("JsCmd", "node")
+	ShCmd := config.GetKey("ShCmd", "bash")
+
 	if commands[0] == "task" {
 		if strings.HasSuffix(commands[1], ".py") {
-			ta.cmd = "python3 " + commands[1]
+			ta.cmd = pythonCmd + " " + commands[1]
 		} else if strings.HasSuffix(commands[1], ".js") {
-			ta.cmd = "node " + commands[1]
+			ta.cmd = JsCmd + " " + commands[1]
 		} else if strings.HasSuffix(commands[1], ".sh") {
-			ta.cmd = "bash " + commands[1]
+			ta.cmd = ShCmd + " " + commands[1]
 		} else if strings.HasSuffix(commands[1], ".ts") {
 			ta.cmd = "ts-node-transpile-only " + commands[1]
 		}
