@@ -13,6 +13,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -49,9 +50,13 @@ func main() {
 
 func checkStatic() {
 	if !utils.FileExist("./static/") {
+		version := config.GetVersion()
+		if !strings.HasPrefix(version, "v") {
+			version = "v1.0.0"
+		}
 		log.Warningln("检测到静态文件资源不存在，即将自动下载文件！")
-		log.Infoln("downloading file from ", fmt.Sprintf("https://github.com/huoxue1/qinglong/releases/download/%s/static.zip", config.GetVersion()))
-		response, err := utils.GetClient().R().Get(fmt.Sprintf("https://github.com/huoxue1/qinglong/releases/download/%s/static.zip", config.GetVersion()))
+		log.Infoln("downloading file from ", fmt.Sprintf("https://github.com/huoxue1/qinglong/releases/download/%s/static.zip", version))
+		response, err := utils.GetClient().R().Get(fmt.Sprintf("https://github.com/huoxue1/qinglong/releases/download/%s/static.zip", version))
 		if err != nil {
 			log.Errorln("下载静态资源文件失败 " + err.Error())
 			return
