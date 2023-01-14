@@ -13,6 +13,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -34,6 +36,7 @@ type task struct {
 	isNow bool
 	isCon bool
 	envs  map[string][]int
+	dir   string
 }
 
 func initTask() {
@@ -112,11 +115,18 @@ func runCron(crontabs *models.Crontabs) {
 		now := time.Now()
 		_ = os.Mkdir("data/log/"+time.Now().Format("2006-01-02"), 0666)
 		file, _ := os.OpenFile(crontabs.LogPath, os.O_RDWR|os.O_CREATE, 0666)
-		go utils.RunTask(ctx, ta.cmd, envFromDb,
-			func(ctx context.Context) {
+		cmdDir := "./data/scripts/"
+		if strings.HasPrefix(ta.cmd, "go") {
+			cmdDir = ta.dir
+		}
+		go utils.RunWithOption(ctx, &utils.RunOption{
+			Command: ta.cmd,
+			Env:     envFromDb,
+			OnStart: func(ctx context.Context) {
 				writer := ctx.Value("log").(io.Writer)
 				writer.Write([]byte(fmt.Sprintf("##开始执行..  %s\n\n", now.Format("2006-01-02 15:04:05"))))
-			}, func(ctx context.Context) {
+			},
+			OnEnd: func(ctx context.Context) {
 				writer := ctx.Value("log").(io.Writer)
 				writer.Write([]byte(fmt.Sprintf("\n##执行结束..  %s，耗时%.1f秒\n\n", time.Now().Format("2006-01-02 15:04:05"), time.Now().Sub(now).Seconds())))
 				crontabs.Status = 1
@@ -125,7 +135,10 @@ func runCron(crontabs *models.Crontabs) {
 				models.UpdateCron(crontabs)
 				execManager.LoadAndDelete(crontabs.Id)
 				file.Close()
-			}, file)
+			},
+			LogFile: file,
+			CmdDir:  cmdDir,
+		})
 	}
 }
 
@@ -171,6 +184,11 @@ func handCommand(command string) *task {
 			ta.cmd = ShCmd + " " + commands[1]
 		} else if strings.HasSuffix(commands[1], ".ts") {
 			ta.cmd = "ts-node-transpile-only " + commands[1]
+		} else if strings.HasSuffix(commands[1], ".go") {
+
+			log.Infoln(filepath.Base(commands[1]))
+			ta.cmd = fmt.Sprintf(`go run %s`, filepath.Base(commands[1]))
+			ta.dir = path.Join("./data", "scripts", filepath.Dir(commands[1]))
 		}
 		if len(commands) > 2 {
 			if commands[2] == "now" {
@@ -206,4 +224,13 @@ func handCommand(command string) *task {
 		ta.cmd = command
 	}
 	return ta
+}
+
+func getGoModule(filePath string) string {
+	file, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Errorln("not get the go module name")
+		return ""
+	}
+	return strings.TrimSpace(strings.TrimPrefix(strings.Split(string(file), "\n")[0], "module"))
 }

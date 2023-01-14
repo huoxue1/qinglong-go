@@ -51,3 +51,54 @@ func RunTask(ctx context.Context, command string, env map[string]string, onStart
 
 	}
 }
+
+type RunOption struct {
+	Command string
+	Env     map[string]string
+	OnStart func(ctx context.Context)
+	OnEnd   func(ctx context.Context)
+	LogFile io.Writer
+	CmdDir  string
+}
+
+func RunWithOption(ctx context.Context, option *RunOption) {
+	cmd := exec.Command(strings.Split(option.Command, " ")[0], strings.Split(option.Command, " ")[1:]...)
+	for s, s2 := range option.Env {
+		cmd.Env = append(cmd.Env, s+"="+s2)
+	}
+	environ := os.Environ()
+	cmd.Env = append(cmd.Env, environ...)
+	stdoutPipe, _ := cmd.StdoutPipe()
+	stderrPipe, _ := cmd.StderrPipe()
+	cmd.Dir = option.CmdDir
+	option.OnStart(context.WithValue(ctx, "log", option.LogFile))
+	ch := make(chan int, 1)
+	go func() {
+		err := cmd.Start()
+		if err != nil {
+			ch <- 1
+			return
+		}
+		go io.Copy(option.LogFile, stderrPipe)
+		go io.Copy(option.LogFile, stdoutPipe)
+		err = cmd.Wait()
+		if err != nil {
+			ch <- 1
+			return
+		}
+		ch <- 1
+	}()
+	cancel := ctx.Value("cancel").(chan int)
+	select {
+	case <-ch:
+		{
+			option.OnEnd(context.WithValue(ctx, "log", option.LogFile))
+		}
+	case <-cancel:
+		{
+			_ = cmd.Process.Kill()
+			option.OnEnd(context.WithValue(context.Background(), "log", option.LogFile))
+		}
+
+	}
+}
