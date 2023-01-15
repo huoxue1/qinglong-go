@@ -1,6 +1,7 @@
 package subscription
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -135,7 +136,7 @@ func downloadPublicRepo(subscriptions *models.Subscriptions) error {
 }
 
 func addScripts(subscriptions *models.Subscriptions) {
-	file, _ := os.OpenFile(subscriptions.LogPath, os.O_CREATE|os.O_RDWR, 0666)
+	file, _ := os.OpenFile(subscriptions.LogPath, os.O_RDWR|os.O_APPEND, 0666)
 	defer file.Close()
 	var extensions []string
 	if subscriptions.Extensions != "" {
@@ -152,7 +153,12 @@ func addScripts(subscriptions *models.Subscriptions) {
 	for _, crontab := range crontabs {
 		cronMap[crontab.Command] = crontab
 	}
+	isGoMod := false
 	for _, entry := range dir {
+
+		if entry.Name() == "go.mod" {
+			isGoMod = true
+		}
 		// 判断文件后缀
 		if !utils.In(strings.TrimPrefix(filepath.Ext(entry.Name()), "."), extensions) {
 			if !entry.IsDir() {
@@ -199,6 +205,23 @@ func addScripts(subscriptions *models.Subscriptions) {
 			file.WriteString("已删除失效的任务 " + m.Name + "\n")
 			models.DeleteCron(m.Id)
 		}
+	}
+	if isGoMod {
+		file.WriteString("检测到go模块，开始自动下载golang依赖!!")
+		cancelChan := make(chan int, 1)
+		ctx := context.WithValue(context.Background(), "cancel", cancelChan)
+		utils.RunWithOption(ctx, &utils.RunOption{
+			Command: "go mod tidy",
+			Env:     map[string]string{},
+			OnStart: func(ctx context.Context) {
+
+			},
+			OnEnd: func(ctx context.Context) {
+
+			},
+			LogFile: file,
+			CmdDir:  path.Join("data", "scripts", subscriptions.Alias),
+		})
 	}
 }
 
