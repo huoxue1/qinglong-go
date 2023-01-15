@@ -46,7 +46,8 @@ RUN set -x \
     && rm -rf /root/.npm \
     && mkdir -p ${QL_DIR}/data \
     && cd ${QL_DIR} \
-    && git clone https://github.com/whyour/qinglong-static.git ./static/
+    && wget https://github.com/huoxue1/qinglong/releases/download/v1.0.0/static.tar.gz \
+    && tar -xzvf static.tar.gz
 
 COPY ./dist/docker_linux_$TARGETARCH*/qinglong-go ${QL_DIR}/ql
 
