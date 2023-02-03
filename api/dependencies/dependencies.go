@@ -14,9 +14,18 @@ func Api(group *gin.RouterGroup) {
 	group.GET("/:id", getDep())
 }
 
+var (
+	typMap = map[string]int{
+		"nodejs":  0,
+		"python3": 1,
+		"linux":   2,
+	}
+)
+
 func get() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		dependences, err := models.QueryDependences(ctx.Query("searchValue"))
+
+		dependences, err := models.QueryDependences(ctx.Query("searchValue"), typMap[ctx.Query("type")])
 		if err != nil {
 			ctx.JSON(503, res.Err(503, err))
 			return

@@ -11,7 +11,7 @@ type Crontabs struct {
 	Command           string   `xorm:"VARCHAR(255)" json:"command"`
 	Schedule          string   `xorm:"VARCHAR(255)" json:"schedule"`
 	Timestamp         string   `xorm:"VARCHAR(255)" json:"timestamp"`
-	Saved             int      `xorm:"TINYINT(1)" json:"saved"`
+	Saved             bool     `xorm:"TINYINT(1)" json:"saved"`
 	Status            int      `xorm:"TINYINT(1)" json:"status"`
 	Issystem          int      `xorm:"TINYINT(1)" json:"isSystem"`
 	Pid               int      `xorm:"TINYINT(1)" json:"pid"`

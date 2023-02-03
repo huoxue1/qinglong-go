@@ -1,10 +1,13 @@
 package ws
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/gobwas/ws"
 	"github.com/huoxue1/qinglong-go/service/client"
 	"github.com/huoxue1/qinglong-go/utils/res"
+	"nhooyr.io/websocket"
+	"nhooyr.io/websocket/wsjson"
+	"time"
 )
 
 func Api(group *gin.RouterGroup) {
@@ -20,12 +23,35 @@ func info() gin.HandlerFunc {
 
 func wsHandle() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		conn, _, _, err := ws.UpgradeHTTP(ctx.Request, ctx.Writer)
+		conn, err := websocket.Accept(ctx.Writer, ctx.Request, &websocket.AcceptOptions{
+			Subprotocols:         nil,
+			InsecureSkipVerify:   false,
+			OriginPatterns:       []string{"*"},
+			CompressionMode:      0,
+			CompressionThreshold: 0,
+		})
 		if err != nil {
 			ctx.JSON(502, res.Err(502, err))
 			return
 		}
 
-		client.AddWs(ctx.Param("id")+"_"+ctx.Param("name"), conn)
+		wsjson.Write(context.Background(), conn, map[string]string{"123": "11"})
+		wsjson.Write(context.Background(), conn, map[string]string{"123": "11"})
+		wsjson.Write(context.Background(), conn, map[string]string{"123": "11"})
+
+		c := make(chan any, 100)
+		client.AddChan(c)
+
+		for true {
+			wsjson.Write(context.Background(), conn, map[string]string{"123": "11"})
+			time.Sleep(1000)
+			wsjson.Write(context.Background(), conn, map[string]string{"123": "11"})
+			data := <-c
+			err := wsjson.Write(context.Background(), conn, data)
+			if err != nil {
+				break
+			}
+		}
 	}
+
 }

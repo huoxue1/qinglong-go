@@ -74,3 +74,14 @@ func (l *LogWriter) Write(p []byte) (n int, err error) {
 	log.Debugln(string(p))
 	return len(p), nil
 }
+
+type CronLog struct {
+}
+
+func (c *CronLog) Info(msg string, keysAndValues ...interface{}) {
+	log.Infoln(msg, "  ", keysAndValues)
+}
+
+func (c *CronLog) Error(err error, msg string, keysAndValues ...interface{}) {
+	log.Errorln(err)
+}

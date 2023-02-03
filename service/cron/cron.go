@@ -2,7 +2,6 @@ package cron
 
 import (
 	"github.com/huoxue1/qinglong-go/models"
-	"github.com/robfig/cron/v3"
 	"time"
 )
 
@@ -12,17 +11,17 @@ func GetCrons(page, size int, searchValue string, sorter map[string]string, filt
 }
 
 func AddCron(cron *models.Crontabs) (int, error) {
-	AddTask(cron)
+	err := AddTask(cron)
+	if err != nil {
+		return 0, err
+	}
 	return models.AddCron(cron)
 }
 
 func DeleteCron(ids []int) error {
 	for _, id := range ids {
 
-		c, _ := manager.Load(id)
-		if c != nil {
-			c.(*cron.Cron).Stop()
-		}
+		DeleteTask(id)
 
 		err := models.DeleteCron(id)
 		if err != nil {
@@ -40,10 +39,7 @@ func UpdateCron(c1 *models.Crontabs) error {
 	crontabs.Schedule = c1.Schedule
 	crontabs.Updatedat = time.Now().Format(time.RFC3339)
 
-	c, _ := manager.Load(c1.Id)
-	if c != nil {
-		c.(*cron.Cron).Stop()
-	}
+	DeleteTask(c1.Id)
 	AddTask(c1)
 
 	return models.UpdateCron(crontabs)
@@ -52,8 +48,7 @@ func UpdateCron(c1 *models.Crontabs) error {
 func DisableCron(ids []int) error {
 	for _, id := range ids {
 
-		c, _ := manager.Load(id)
-		c.(*cron.Cron).Stop()
+		DeleteTask(id)
 
 		cron, err := models.GetCron(id)
 		if err != nil {
@@ -120,7 +115,7 @@ func RunCron(ids []int) error {
 		if err != nil {
 			continue
 		}
-		runCron(crontab)
+		runCron(crontab, true)
 	}
 	return nil
 }

@@ -69,6 +69,9 @@ TsCmd="ts-node-transpile-only"
 # 运行以.sh结尾的文件时的命令
 ShCmd="bash"
 
+# 运行以python依赖的命令
+PipCmd="pip"
+
 ## 通知环境变量
 ## 1. Server酱
 ## https://sct.ftqq.com

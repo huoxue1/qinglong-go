@@ -23,17 +23,16 @@ type Dependences struct {
 	Updatedat time.Time `xorm:"not null DATETIME updated" json:"updatedAt"`
 }
 
-func QueryDependences(searchValue string) ([]*Dependences, error) {
+func QueryDependences(searchValue string, typ int) ([]*Dependences, error) {
 	dep := make([]*Dependences, 0)
 	session := engine.Table(new(Dependences)).
 		Where(
 			builder.Like{"name", "%" + searchValue + "%"})
-	err := session.Find(&dep)
+	err := session.And("type=?", typ).Find(&dep)
 	if err != nil {
 		return nil, err
 	}
 	return dep, err
-
 }
 
 func AddDependences(dep *Dependences) (int, error) {

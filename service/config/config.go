@@ -4,6 +4,8 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 var VERSION = "v1.0.0"
@@ -23,4 +25,16 @@ func GetKey(key, defaultValue string) string {
 
 func GetVersion() string {
 	return VERSION
+}
+
+var address string
+
+func SetAddress(add string) {
+	address = add
+}
+
+func ListenPort() int {
+	split := strings.Split(address, ":")
+	port, _ := strconv.Atoi(split[1])
+	return port
 }

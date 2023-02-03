@@ -9,7 +9,7 @@ type Envs struct {
 	Id        int       `xorm:"pk autoincr INTEGER" json:"id,omitempty"`
 	Value     string    `xorm:"TEXT" json:"value,omitempty"`
 	Timestamp string    `xorm:"TEXT" json:"timestamp,omitempty"`
-	Status    *int      `xorm:"TINYINT(1)" json:"status,omitempty"`
+	Status    int       `xorm:"TINYINT(1)" json:"status,omitempty"`
 	Position  string    `xorm:"TINYINT(1)" json:"position,omitempty"`
 	Name      string    `xorm:"TEXT" json:"name,omitempty"`
 	Remarks   string    `xorm:"TEXT" json:"remarks,omitempty"`

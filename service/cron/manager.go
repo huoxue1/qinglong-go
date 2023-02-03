@@ -8,7 +8,7 @@ import (
 	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/service/env"
 	"github.com/huoxue1/qinglong-go/utils"
-	"github.com/robfig/cron/v3"
+	cron_manager "github.com/huoxue1/qinglong-go/utils/cron-manager"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
@@ -22,7 +22,6 @@ import (
 )
 
 var (
-	manager     sync.Map
 	execManager sync.Map
 )
 
@@ -58,7 +57,7 @@ func stopCron(crontabs *models.Crontabs) {
 	cancel()
 }
 
-func runCron(crontabs *models.Crontabs) {
+func runCron(crontabs *models.Crontabs, isNow bool) {
 	envFromDb := env.LoadEnvFromDb()
 	envfromFile := env.LoadEnvFromFile("data/config/config.sh")
 	for s, s2 := range envfromFile {
@@ -119,7 +118,8 @@ func runCron(crontabs *models.Crontabs) {
 		if strings.HasPrefix(ta.cmd, "go") {
 			cmdDir = ta.dir
 		}
-		go utils.RunWithOption(ctx, &utils.RunOption{
+		option := &utils.RunOption{
+			Ctx:     ctx,
 			Command: ta.cmd,
 			Env:     envFromDb,
 			OnStart: func(ctx context.Context) {
@@ -138,33 +138,29 @@ func runCron(crontabs *models.Crontabs) {
 			},
 			LogFile: file,
 			CmdDir:  cmdDir,
-		})
+		}
+		if isNow {
+			go utils.RunWithOption(ctx, option)
+		} else {
+			_ = run(option)
+		}
+
 	}
 }
 
-func AddTask(crontabs *models.Crontabs) {
-	crons := strings.Split(crontabs.Schedule, " ")
-	var c *cron.Cron
-	if len(crons) == 5 {
-		c = cron.New()
-
-	} else if len(crons) == 6 {
-		c = cron.New(cron.WithParser(
-			cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)))
-	} else {
-		log.Errorf("the task %s cron %s is error", crontabs.Name, crontabs.Command)
-		return
-	}
-	_, err := c.AddFunc(crontabs.Schedule, func() {
-		runCron(crontabs)
+func AddTask(crontabs *models.Crontabs) error {
+	err := cron_manager.AddCron(fmt.Sprintf("cron_%d", crontabs.Id), crontabs.Schedule, func() {
+		runCron(crontabs, false)
 	})
 	if err != nil {
-		log.Errorln("添加task错误" + crontabs.Schedule + err.Error())
-		return
+		log.Errorln("添加定时任务错误" + err.Error())
+		return err
 	}
-	c.Start()
-	manager.Store(crontabs.Id, c)
+	return nil
+}
 
+func DeleteTask(id int) error {
+	return cron_manager.DeleteCron(fmt.Sprintf("cron_%d", id))
 }
 
 func handCommand(command string) *task {

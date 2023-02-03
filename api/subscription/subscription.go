@@ -66,7 +66,6 @@ func get() gin.HandlerFunc {
 		ctx.JSON(200, res.Ok(subs))
 
 	}
-
 }
 
 func post() gin.HandlerFunc {

@@ -43,7 +43,7 @@ func post() gin.HandlerFunc {
 			e.Createdat = time.Now()
 			e.Updatedat = time.Now()
 			e.Timestamp = time.Now().Format("Mon Jan 02 2006 15:04:05 MST")
-			e.Status = &status
+			e.Status = status
 			id, err := env.AddEnv(e)
 			if err != nil {
 				ctx.JSON(200, res.Err(503, err))
@@ -142,7 +142,7 @@ func upload() gin.HandlerFunc {
 			e.Createdat = time.Now()
 			e.Updatedat = time.Now()
 			e.Timestamp = time.Now().Format("Mon Jan 02 2006 15:04:05 MST")
-			e.Status = &status
+			e.Status = status
 			id, err := env.AddEnv(e)
 			if err != nil {
 				ctx.JSON(200, res.Err(503, err))

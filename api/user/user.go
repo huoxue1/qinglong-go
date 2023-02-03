@@ -57,6 +57,7 @@ func appInit() gin.HandlerFunc {
 			return
 		}
 		_ = os.MkdirAll(path.Join("data", "config"), 0666)
+		_ = os.MkdirAll(path.Join("data", "deps"), 0666)
 		_ = os.MkdirAll(path.Join("data", "log"), 0666)
 		_ = os.MkdirAll(path.Join("data", "repo"), 0666)
 		_ = os.MkdirAll(path.Join("data", "scripts"), 0666)

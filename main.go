@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	nested "github.com/Lyrics-you/sail-logrus-formatter/sailor"
 	"github.com/dablelv/go-huge-util/zip"
@@ -15,6 +16,10 @@ import (
 	"path"
 	"strings"
 	"time"
+)
+
+var (
+	address string
 )
 
 func init() {
@@ -39,13 +44,16 @@ func init() {
 		CallerFirst:           false,
 		CustomCallerFormatter: nil,
 	})
+	flag.StringVar(&address, "add", "0.0.0.0:5700", "the ql listen address!")
+	flag.Parse()
+	config.SetAddress(address)
 }
 
 func main() {
 	checkStatic()
 	service.AppInit()
 	engine := controller.Router()
-	_ = engine.Run(":5700")
+	_ = engine.Run(address)
 }
 
 func checkStatic() {

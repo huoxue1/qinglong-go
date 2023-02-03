@@ -44,7 +44,7 @@ func DisableEnv(ids []int) error {
 		if err != nil {
 			continue
 		}
-		env.Status = &DISABLESTATUS
+		env.Status = DISABLESTATUS
 		err = models.UpdateEnv(env)
 		if err != nil {
 			return err
@@ -59,7 +59,7 @@ func EnableEnv(ids []int) error {
 		if err != nil {
 			continue
 		}
-		env.Status = &ENABLESTATUS
+		env.Status = ENABLESTATUS
 		err = models.UpdateEnv(env)
 		if err != nil {
 			return err
@@ -86,6 +86,9 @@ func LoadEnvFromDb() map[string]string {
 		return result
 	}
 	for _, env := range envs {
+		if env.Status == 1 {
+			continue
+		}
 		if _, ok := result[env.Name]; ok {
 			result[env.Name] = result[env.Name] + "&" + env.Value
 		} else {

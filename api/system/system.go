@@ -22,7 +22,7 @@ func get() gin.HandlerFunc {
 			Version:        config.GetVersion(),
 			LastCommitTime: "",
 			LastCommitId:   "",
-			Branch:         "Main",
+			Branch:         "qinglong-go",
 		}))
 	}
 }

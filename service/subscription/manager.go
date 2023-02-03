@@ -9,6 +9,7 @@ import (
 	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/service/cron"
 	"github.com/huoxue1/qinglong-go/utils"
+	cron_manager "github.com/huoxue1/qinglong-go/utils/cron-manager"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
@@ -24,6 +25,34 @@ import (
 var (
 	manager sync.Map
 )
+
+func init() {
+	log.Infoln("开始初始化订阅任务定时！")
+	subscriptions, err := models.QuerySubscription("")
+	if err != nil {
+		return
+	}
+	for _, subscription := range subscriptions {
+		cron_manager.AddCron(fmt.Sprintf("sub_%d", subscription.Id), subscription.GetCron(), func() {
+			downloadFiles(subscription)
+		})
+	}
+}
+
+func getDepFiles() []string {
+	var files []string
+	dir, err := os.ReadDir(path.Join("data", "deps"))
+	if err != nil {
+		return []string{}
+	}
+	for _, entry := range dir {
+		if !entry.IsDir() {
+			files = append(files, entry.Name())
+		}
+
+	}
+	return files
+}
 
 func stopSubscription(sub *models.Subscriptions) {
 	defer func() {
@@ -41,12 +70,13 @@ func stopSubscription(sub *models.Subscriptions) {
 
 func downloadFiles(subscriptions *models.Subscriptions) {
 	if subscriptions.Type == "public-repo" {
-		os.RemoveAll(path.Join("data", "scripts", subscriptions.Alias))
+
 		os.RemoveAll(path.Join("data", "repo", subscriptions.Alias))
 		err := downloadPublicRepo(subscriptions)
 		if err != nil {
 			return
 		}
+		os.RemoveAll(path.Join("data", "scripts", subscriptions.Alias))
 		if config.GetKey("AutoAddCron", "true") == "true" {
 			addScripts(subscriptions)
 		} else {
@@ -58,6 +88,7 @@ func downloadFiles(subscriptions *models.Subscriptions) {
 		_ = file.Close()
 		subscriptions.Status = 1
 		models.UpdateSubscription(subscriptions)
+		manager.LoadAndDelete(subscriptions.Id)
 	} else if subscriptions.Type == "file" {
 		addRawFiles(subscriptions)
 	}
@@ -128,7 +159,7 @@ func downloadPublicRepo(subscriptions *models.Subscriptions) error {
 	manager.Store(subscriptions.Id, func() {
 		command.Process.Kill()
 	})
-	defer manager.LoadAndDelete(subscriptions.Id)
+
 	go io.Copy(io.MultiWriter(file, os.Stdout), pipe)
 	go io.Copy(file, stderrPipe)
 	command.Wait()
@@ -136,6 +167,7 @@ func downloadPublicRepo(subscriptions *models.Subscriptions) error {
 }
 
 func addScripts(subscriptions *models.Subscriptions) {
+	depFiles := getDepFiles()
 	file, _ := os.OpenFile(subscriptions.LogPath, os.O_RDWR|os.O_APPEND, 0666)
 	defer file.Close()
 	var extensions []string
@@ -175,8 +207,7 @@ func addScripts(subscriptions *models.Subscriptions) {
 			if c != "" {
 				command, err := models.GetCronByCommand(fmt.Sprintf("task %s", path.Join(subscriptions.Alias, entry.Name())))
 				if err != nil {
-					file.WriteString("已添加新的定时任务  " + name + "\n")
-					_, _ = cron.AddCron(&models.Crontabs{
+					_, err1 := cron.AddCron(&models.Crontabs{
 						Name:      name,
 						Command:   fmt.Sprintf("task %s", path.Join(subscriptions.Alias, entry.Name())),
 						Schedule:  c,
@@ -184,6 +215,12 @@ func addScripts(subscriptions *models.Subscriptions) {
 						Status:    1,
 						Labels:    []string{},
 					})
+					if err1 != nil {
+						file.WriteString("定时任务添加失败： " + name + " " + err1.Error())
+						err1 = nil
+					} else {
+						file.WriteString("已添加新的定时任务  " + name + "\n")
+					}
 				} else {
 					command.Name = name
 					command.Schedule = c
@@ -198,6 +235,10 @@ func addScripts(subscriptions *models.Subscriptions) {
 			if depen.MatchString(entry.Name()) {
 				utils.Copy(path.Join("data", "repo", subscriptions.Alias, entry.Name()), path.Join("data", "scripts", subscriptions.Alias, entry.Name()))
 			}
+		}
+		if utils.In(entry.Name(), depFiles) {
+			file.WriteString("已替换依赖文件： " + entry.Name() + "\n")
+			utils.Copy(path.Join("data", "deps", entry.Name()), path.Join("data", "scripts", subscriptions.Alias, entry.Name()))
 		}
 	}
 	if config.GetKey("AutoDelCron", "true") == "true" {
@@ -222,6 +263,10 @@ func addScripts(subscriptions *models.Subscriptions) {
 			LogFile: file,
 			CmdDir:  path.Join("data", "scripts", subscriptions.Alias),
 		})
+	}
+	for _, depFile := range depFiles {
+		utils.Copy(path.Join("data", "deps", depFile), path.Join("data", "scripts", subscriptions.Alias, depFile))
+
 	}
 }
 

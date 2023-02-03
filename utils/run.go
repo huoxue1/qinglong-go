@@ -2,6 +2,9 @@ package utils
 
 import (
 	"context"
+	"fmt"
+	"github.com/huoxue1/qinglong-go/service/config"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"os/exec"
@@ -17,6 +20,10 @@ func RunTask(ctx context.Context, command string, env map[string]string, onStart
 	for s, s2 := range env {
 		cmd.Env = append(cmd.Env, s+"="+s2)
 	}
+	environ := os.Environ()
+	dir, _ := os.Getwd()
+	port := config.ListenPort()
+	cmd.Env = append(append(cmd.Env, environ...), "QL_DIR="+dir, fmt.Sprintf("QL_PORT=%d", port))
 	stdoutPipe, _ := cmd.StdoutPipe()
 	stderrPipe, _ := cmd.StderrPipe()
 	cmd.Dir = "./data/scripts/"
@@ -53,6 +60,7 @@ func RunTask(ctx context.Context, command string, env map[string]string, onStart
 }
 
 type RunOption struct {
+	Ctx     context.Context
 	Command string
 	Env     map[string]string
 	OnStart func(ctx context.Context)
@@ -62,12 +70,21 @@ type RunOption struct {
 }
 
 func RunWithOption(ctx context.Context, option *RunOption) {
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Errorln("执行command出现异常")
+			log.Errorln(err)
+		}
+	}()
 	cmd := exec.Command(strings.Split(option.Command, " ")[0], strings.Split(option.Command, " ")[1:]...)
 	for s, s2 := range option.Env {
 		cmd.Env = append(cmd.Env, s+"="+s2)
 	}
 	environ := os.Environ()
-	cmd.Env = append(cmd.Env, environ...)
+	dir, _ := os.Getwd()
+	port := config.ListenPort()
+	cmd.Env = append(append(cmd.Env, environ...), "QL_DIR="+dir, fmt.Sprintf("QL_PORT=%d", port))
 	stdoutPipe, _ := cmd.StdoutPipe()
 	stderrPipe, _ := cmd.StderrPipe()
 	cmd.Dir = option.CmdDir

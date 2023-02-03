@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/huoxue1/qinglong-go/models"
+	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/utils"
 	"io"
 	"strings"
@@ -47,7 +48,8 @@ func addPythonDep(dep *models.Dependences) {
 	buffer := bytes.NewBufferString(log)
 	ctx := context.WithValue(context.Background(), "cancel", make(chan int, 1))
 	now := time.Now()
-	utils.RunTask(ctx, fmt.Sprintf("pip install %s", dep.Name), map[string]string{}, func(ctx context.Context) {
+	pip := config.GetKey("PipCmd", "pip")
+	utils.RunTask(ctx, fmt.Sprintf(pip+" install %s", dep.Name), map[string]string{}, func(ctx context.Context) {
 		writer := ctx.Value("log").(io.Writer)
 		writer.Write([]byte(fmt.Sprintf("##开始执行..  %s\n\n", now.Format("2006-01-02 15:04:05"))))
 	}, func(ctx context.Context) {

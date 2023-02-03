@@ -20,8 +20,25 @@ func Api(group *gin.RouterGroup) {
 	group.PUT("/pin", pin())
 	group.PUT("/unpin", unpin())
 	group.GET("/:id/log", log1())
+	group.GET("/:id", getById())
 	group.PUT("/run", run())
 	group.PUT("/stop", stop())
+	group.GET("/views", views())
+}
+
+func views() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.JSON(200, res.Ok([]string{}))
+	}
+}
+
+func getById() gin.HandlerFunc {
+
+	return func(ctx *gin.Context) {
+		id, _ := strconv.Atoi(ctx.Param("id"))
+		c := cron.GetCron(id)
+		ctx.JSON(200, res.Ok(c))
+	}
 }
 
 func get() gin.HandlerFunc {

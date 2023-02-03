@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/huoxue1/qinglong-go/service/client"
+	"github.com/google/uuid"
 	"github.com/huoxue1/qinglong-go/service/env"
 	"github.com/huoxue1/qinglong-go/utils"
 	"io"
@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -30,26 +31,71 @@ var (
 		"node_modules",
 		"__pycache__",
 	}
+
+	scriptRunPidMap sync.Map
 )
 
-func Run(filePath, content string) error {
+type task struct {
+	id      string
+	c       chan int
+	logPath string
+}
+
+func Stop(id string) {
+	value, loaded := scriptRunPidMap.Load(id)
+	if !loaded || value == nil {
+		return
+	}
+	t := value.(*task)
+	t.c <- 1
+}
+
+func Log(id string) string {
+	value, ok := scriptRunPidMap.Load(id)
+	if !ok || value == nil {
+		return ""
+	}
+	t := value.(*task)
+	file, err := os.ReadFile(t.logPath)
+	if err != nil {
+		return ""
+	}
+	return string(file)
+
+}
+
+func Run(filePath, content string) (string, error) {
 	err := os.WriteFile(path.Join("data", "scripts", filePath), []byte(content), 0666)
 	if err != nil {
-		return err
+		return "", err
 	}
+	id := uuid.New().String()
+	logPath := "data/log/" + time.Now().Format("2006-01-02") + "/" + filepath.Base(filePath) + "_" + id + ".log"
 	cmd := getCmd(filePath)
 	cancelChan := make(chan int, 1)
 	ctx := context.WithValue(context.Background(), "cancel", cancelChan)
 	now := time.Now()
-	utils.RunTask(ctx, cmd, env.GetALlEnv(), func(ctx context.Context) {
+	file, _ := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE, 0666)
+	go utils.RunTask(ctx, cmd, env.GetALlEnv(), func(ctx context.Context) {
 		writer := ctx.Value("log").(io.Writer)
 		_, _ = writer.Write([]byte(fmt.Sprintf("##开始执行..  %s\n\n", now.Format("2006-01-02 15:04:05"))))
 	}, func(ctx context.Context) {
 		writer := ctx.Value("log").(io.Writer)
 		_, _ = writer.Write([]byte(fmt.Sprintf("\n##执行结束..  %s，耗时%.1f秒\n\n", time.Now().Format("2006-01-02 15:04:05"), time.Now().Sub(now).Seconds())))
 		_ = os.Remove(filePath)
-	}, client.MyClient)
-	return nil
+		// 等待结束三分钟后再删除
+		go func() {
+			time.Sleep(time.Minute * 3)
+			scriptRunPidMap.LoadAndDelete(id)
+		}()
+
+	}, file)
+	scriptRunPidMap.Store(id, &task{
+		id:      id,
+		c:       cancelChan,
+		logPath: logPath,
+	})
+	return id, nil
 }
 
 func getCmd(filePath string) string {
@@ -59,7 +105,8 @@ func getCmd(filePath string) string {
 		return fmt.Sprintf("%s %s", "node", filePath)
 	case ".py":
 		return fmt.Sprintf("%s %s", "python", filePath)
-
+	case ".go":
+		return fmt.Sprintf("go run %s", filePath)
 	}
 	return ""
 }
