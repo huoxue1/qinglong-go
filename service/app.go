@@ -21,9 +21,9 @@ func runYarn() {
 		return
 	}
 	ch := make(chan int, 1)
-	utils.RunTask(context.WithValue(context.Background(), "cancel", ch), "yarn install", map[string]string{}, func(ctx context.Context) {
-		log.Infoln("开始执行yarn初始化！")
+	utils.RunTask(context.WithValue(context.Background(), "cancel", ch), "pnpm install", map[string]string{}, func(ctx context.Context) {
+		log.Infoln("开始执行pnpm初始化！")
 	}, func(ctx context.Context) {
-		log.Infoln("yarn初始化执行完成！")
+		log.Infoln("pnpm初始化执行完成！")
 	}, os.Stdout)
 }

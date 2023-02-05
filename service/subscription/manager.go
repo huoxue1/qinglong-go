@@ -277,17 +277,19 @@ func getSubCron(filePath string) (name string, cron string, err error) {
 	}
 	cronReg := regexp.MustCompile(`([0-9\-*/,]{1,} ){4,5}([0-9\-*/,]){1,}`)
 	nameEnv := regexp.MustCompile(`new\sEnv\(['|"](.*?)['|"]\)`)
-	if cronReg.Match(data) {
-		cron = string(cronReg.FindAll(data, 1)[0])
-		cron = strings.TrimPrefix(cron, "//")
-		if nameEnv.Match(data) {
-			name = string(nameEnv.FindAllSubmatch(data, 1)[0][1])
+	if nameEnv.Match(data) {
+		if cronReg.Match(data) {
+			cron = strings.TrimPrefix(strings.TrimPrefix(string(cronReg.FindAll(data, 1)[0]), "//"), " ")
 		} else {
-			name = path.Base(filePath)
+			key := config.GetKey("DefaultCronRule", "0 9 * * *")
+			if key == "" {
+				key = "0 9 * * *"
+			}
+			cron = key
 		}
+		name = string(nameEnv.FindAllSubmatch(data, 1)[0][1])
+		return
 	} else {
 		return "", "", errors.New("not found cron")
 	}
-	cron = strings.TrimPrefix(cron, " ")
-	return
 }

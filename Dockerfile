@@ -41,12 +41,12 @@ RUN set -x \
     && git config --global user.email "qinglong@@users.noreply.github.com" \
     && git config --global user.name "qinglong" \
     && git config --global http.postBuffer 524288000 \
-    && npm install -g yarn \
+    && npm install -g pnpm \
     && rm -rf /root/.cache \
     && rm -rf /root/.npm \
     && mkdir -p ${QL_DIR}/data \
     && cd ${QL_DIR} \
-    && wget https://github.com/huoxue1/qinglong/releases/download/v1.0.0/static.tar.gz \
+    && wget https://github.com/huoxue1/qinglong/releases/download/v1.0.1/static.tar.gz \
     && tar -xzvf static.tar.gz
 
 COPY ./dist/docker_linux_$TARGETARCH*/qinglong-go ${QL_DIR}/ql

@@ -28,12 +28,13 @@ type Crontabs struct {
 func QueryCron(page int, size int, searchValue string, orderField string, orderType string) ([]*Crontabs, error) {
 	crontabs := make([]*Crontabs, 0)
 	session := engine.Table(new(Crontabs)).Limit(size, (page-1)*size).Where(builder.Like{"name", "%" + searchValue + "%"}.Or(builder.Like{"command", "%" + searchValue + "%"}))
-	if orderType == "DESC" {
-		session.Desc(orderField)
-	} else if orderType == "ASC" {
-		session.Asc(orderField)
-	}
-	err := session.Find(&crontabs)
+	//if orderType == "DESC" {
+	//	session.Desc(orderField)
+	//} else if orderType == "ASC" {
+	//	session.Asc(orderField)
+	//}
+
+	err := session.Asc("status").Find(&crontabs)
 	return crontabs, err
 }
 

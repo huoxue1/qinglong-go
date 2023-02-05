@@ -12,6 +12,8 @@ func Api(group *gin.RouterGroup) {
 	group.POST("", post())
 	group.GET("", get())
 	group.GET("/:id", getDep())
+
+	group.DELETE("", del())
 }
 
 var (
@@ -31,6 +33,20 @@ func get() gin.HandlerFunc {
 			return
 		}
 		ctx.JSON(200, res.Ok(dependences))
+	}
+}
+
+func del() gin.HandlerFunc {
+
+	return func(ctx *gin.Context) {
+		var ids []int
+		err := ctx.ShouldBindJSON(&ids)
+		if err != nil {
+			ctx.JSON(503, res.Err(502, err))
+			return
+		}
+		dependencies.DelDep(ids)
+		ctx.JSON(200, res.Ok(true))
 	}
 }
 
