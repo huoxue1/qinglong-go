@@ -2,19 +2,16 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	nested "github.com/Lyrics-you/sail-logrus-formatter/sailor"
-	"github.com/dablelv/go-huge-util/zip"
 	"github.com/huoxue1/qinglong-go/controller"
 	"github.com/huoxue1/qinglong-go/service"
 	"github.com/huoxue1/qinglong-go/service/config"
-	"github.com/huoxue1/qinglong-go/utils"
+	env_check "github.com/huoxue1/qinglong-go/utils/env-check"
 	rotates "github.com/lestrrat-go/file-rotatelogs"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"path"
-	"strings"
 	"time"
 )
 
@@ -50,34 +47,8 @@ func init() {
 }
 
 func main() {
-	checkStatic()
+	env_check.CheckStatic()
 	service.AppInit()
 	engine := controller.Router()
 	_ = engine.Run(address)
-}
-
-func checkStatic() {
-	if !utils.FileExist("./static/") {
-		version := config.GetVersion()
-		if !strings.HasPrefix(version, "v") {
-			version = "v1.0.0"
-		}
-		log.Warningln("检测到静态文件资源不存在，即将自动下载文件！")
-		log.Infoln("downloading file from ", fmt.Sprintf("https://github.com/huoxue1/qinglong/releases/download/%s/static.zip", version))
-		response, err := utils.GetClient().R().Get(fmt.Sprintf("https://github.com/huoxue1/qinglong/releases/download/%s/static.zip", version))
-		if err != nil {
-			log.Errorln("下载静态资源文件失败 " + err.Error())
-			return
-		}
-		err = os.WriteFile("static.zip", response.Bytes(), 0666)
-		if err != nil {
-			log.Errorln("写入压缩文件错误 " + err.Error())
-			return
-		}
-		err = zip.Unzip("static.zip", ".")
-		if err != nil {
-			log.Errorln(err.Error())
-			return
-		}
-	}
 }

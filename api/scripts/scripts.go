@@ -60,7 +60,7 @@ func run() gin.HandlerFunc {
 			ctx.JSON(503, res.Err(503, err))
 			return
 		}
-		id, err := scripts.Run(path2.Join(r.Path, "_"+r.FileName), r.Content)
+		id, err := scripts.Run(path2.Join(r.Path, "temp_"+r.FileName), r.Content)
 		if err != nil {
 			ctx.JSON(503, res.Err(503, err))
 			return
@@ -132,11 +132,13 @@ func post() gin.HandlerFunc {
 				}
 
 			} else {
-				_, err := os.Create(path2.Join("data", "scripts", r.Path, r.FileName))
+				f, err := os.Create(path2.Join("data", "scripts", r.Path, r.FileName))
 				if err != nil {
 					ctx.JSON(503, res.Err(503, err))
 					return
 				}
+				_, _ = f.WriteString(r.Content)
+				_ = f.Close()
 			}
 			ctx.JSON(200, res.Ok(true))
 

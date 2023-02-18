@@ -71,25 +71,34 @@ func Run(filePath, content string) (string, error) {
 	}
 	id := uuid.New().String()
 	logPath := "data/log/" + time.Now().Format("2006-01-02") + "/" + filepath.Base(filePath) + "_" + id + ".log"
-	cmd := getCmd(filePath)
+	os.Mkdir(filepath.Dir(logPath), 0666)
+	dir, cmd := getCmd(filePath)
 	cancelChan := make(chan int, 1)
 	ctx := context.WithValue(context.Background(), "cancel", cancelChan)
 	now := time.Now()
 	file, _ := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE, 0666)
-	go utils.RunTask(ctx, cmd, env.GetALlEnv(), func(ctx context.Context) {
-		writer := ctx.Value("log").(io.Writer)
-		_, _ = writer.Write([]byte(fmt.Sprintf("##开始执行..  %s\n\n", now.Format("2006-01-02 15:04:05"))))
-	}, func(ctx context.Context) {
-		writer := ctx.Value("log").(io.Writer)
-		_, _ = writer.Write([]byte(fmt.Sprintf("\n##执行结束..  %s，耗时%.1f秒\n\n", time.Now().Format("2006-01-02 15:04:05"), time.Now().Sub(now).Seconds())))
-		_ = os.Remove(filePath)
-		// 等待结束三分钟后再删除
-		go func() {
-			time.Sleep(time.Minute * 3)
-			scriptRunPidMap.LoadAndDelete(id)
-		}()
+	go utils.RunWithOption(ctx, &utils.RunOption{
+		Ctx:     ctx,
+		Command: cmd,
+		Env:     env.GetALlEnv(),
+		OnStart: func(ctx context.Context) {
+			writer := ctx.Value("log").(io.Writer)
+			_, _ = writer.Write([]byte(fmt.Sprintf("##开始执行..  %s\n\n", now.Format("2006-01-02 15:04:05"))))
+		},
+		OnEnd: func(ctx context.Context) {
+			writer := ctx.Value("log").(io.Writer)
+			_, _ = writer.Write([]byte(fmt.Sprintf("\n##执行结束..  %s，耗时%.1f秒\n\n", time.Now().Format("2006-01-02 15:04:05"), time.Now().Sub(now).Seconds())))
+			_ = os.Remove(filePath)
+			// 等待结束三分钟后再删除
+			go func() {
+				time.Sleep(time.Minute * 3)
+				scriptRunPidMap.LoadAndDelete(id)
+			}()
 
-	}, file)
+		},
+		LogFile: file,
+		CmdDir:  dir,
+	})
 	scriptRunPidMap.Store(id, &task{
 		id:      id,
 		c:       cancelChan,
@@ -98,17 +107,17 @@ func Run(filePath, content string) (string, error) {
 	return id, nil
 }
 
-func getCmd(filePath string) string {
+func getCmd(filePath string) (dir string, cmd string) {
 	ext := filepath.Ext(filePath)
 	switch ext {
 	case ".js":
-		return fmt.Sprintf("%s %s", "node", filePath)
+		return "./data/scripts/", fmt.Sprintf("%s %s", "node", filePath)
 	case ".py":
-		return fmt.Sprintf("%s %s", "python", filePath)
+		return "./data/scripts/", fmt.Sprintf("%s %s", "python", filePath)
 	case ".go":
-		return fmt.Sprintf("go run %s", filePath)
+		return path.Join("./data/scripts/", filepath.Dir(filePath)), fmt.Sprintf("go run %s", filepath.Base(filePath))
 	}
-	return ""
+	return "./data/scripts/", ""
 }
 
 func GetFiles(base, p string) []*File {

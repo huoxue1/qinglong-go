@@ -6,15 +6,16 @@ import (
 )
 
 type Envs struct {
-	Id        int       `xorm:"pk autoincr INTEGER" json:"id,omitempty"`
-	Value     string    `xorm:"TEXT" json:"value,omitempty"`
-	Timestamp string    `xorm:"TEXT" json:"timestamp,omitempty"`
-	Status    int       `xorm:"TINYINT(1)" json:"status,omitempty"`
-	Position  string    `xorm:"TINYINT(1)" json:"position,omitempty"`
-	Name      string    `xorm:"TEXT" json:"name,omitempty"`
-	Remarks   string    `xorm:"TEXT" json:"remarks,omitempty"`
-	Createdat time.Time `xorm:"not null DATETIME created" json:"createdAt"`
-	Updatedat time.Time `xorm:"not null DATETIME updated" json:"updatedAt"`
+	Id          int       `xorm:"pk autoincr INTEGER" json:"id,omitempty"`
+	Value       string    `xorm:"TEXT" json:"value,omitempty"`
+	Timestamp   string    `xorm:"TEXT" json:"timestamp,omitempty"`
+	Status      int       `xorm:"TINYINT(1)" json:"status,omitempty"`
+	Position    string    `xorm:"TINYINT(1)" json:"position,omitempty"`
+	Name        string    `xorm:"TEXT" json:"name,omitempty"`
+	Remarks     string    `xorm:"TEXT" json:"remarks,omitempty"`
+	Createdat   time.Time `xorm:"not null DATETIME created" json:"createdAt"`
+	Updatedat   time.Time `xorm:"not null DATETIME updated" json:"updatedAt"`
+	SerialIndex int64     `xorm:"serial_index INTEGER" json:"serialIndex"`
 }
 
 func QueryEnv(searchValue string) ([]*Envs, error) {
@@ -23,7 +24,7 @@ func QueryEnv(searchValue string) ([]*Envs, error) {
 		Where(
 			builder.Like{"name", "%" + searchValue + "%"}.
 				Or(builder.Like{"value", "%" + searchValue + "%"}).
-				Or(builder.Like{"remarks", "%" + searchValue + "%"}))
+				Or(builder.Like{"remarks", "%" + searchValue + "%"})).Asc("serial_index")
 	err := session.Find(&envs)
 	if err != nil {
 		return nil, err
@@ -32,7 +33,19 @@ func QueryEnv(searchValue string) ([]*Envs, error) {
 
 }
 
+func QueryEnvByIndex(from, to int64) ([]*Envs, error) {
+	envs := make([]*Envs, 0)
+	err := engine.Table(new(Envs)).Where(builder.Between{
+		Col:     "serial_index",
+		LessVal: from,
+		MoreVal: to,
+	}).Find(&envs)
+	return envs, err
+}
+
 func AddEnv(envs *Envs) (int, error) {
+	count, _ := engine.Table(envs).Count()
+	envs.SerialIndex = count
 	_, err := engine.Table(envs).Insert(envs)
 	if err != nil {
 		return 0, err

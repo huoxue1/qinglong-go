@@ -13,6 +13,36 @@ var (
 	ENABLESTATUS  = 0
 )
 
+func MoveEnv(id int, fromIndex, toIndex int64) error {
+	if fromIndex < toIndex {
+		envs, err := models.QueryEnvByIndex(fromIndex, toIndex)
+		if err != nil {
+			return err
+		}
+		for _, env := range envs {
+			env.SerialIndex = env.SerialIndex - 1
+			_ = models.UpdateEnv(env)
+		}
+
+	} else {
+		envs, err := models.QueryEnvByIndex(toIndex, fromIndex)
+		if err != nil {
+			return err
+		}
+		for _, env := range envs {
+			env.SerialIndex = env.SerialIndex + 1
+			_ = models.UpdateEnv(env)
+		}
+	}
+	env, err := models.GetEnv(id)
+	if err != nil {
+		return err
+	}
+	env.SerialIndex = toIndex
+	_ = models.UpdateEnv(env)
+	return nil
+}
+
 func AddEnv(env *models.Envs) (int, error) {
 	return models.AddEnv(env)
 }

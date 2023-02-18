@@ -7,6 +7,7 @@ import (
 	"github.com/huoxue1/qinglong-go/service/env"
 	"github.com/huoxue1/qinglong-go/utils/res"
 	"io"
+	"strconv"
 	"time"
 )
 
@@ -18,6 +19,29 @@ func Api(group *gin.RouterGroup) {
 	group.PUT("/enable", enable())
 	group.PUT("/disable", disable())
 	group.POST("/upload", upload())
+	group.PUT("/:id/move", move())
+}
+
+func move() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _ := strconv.Atoi(ctx.Param("id"))
+		type req struct {
+			FromIndex int64 `json:"fromIndex"`
+			ToIndex   int64 `json:"toIndex"`
+		}
+		r := new(req)
+		err := ctx.ShouldBindJSON(r)
+		if err != nil {
+			ctx.JSON(503, res.Err(503, err))
+			return
+		}
+		err = env.MoveEnv(id, r.FromIndex, r.ToIndex)
+		if err != nil {
+			ctx.JSON(503, res.Err(503, err))
+			return
+		}
+		ctx.JSON(200, res.Ok(true))
+	}
 }
 
 func get() gin.HandlerFunc {
@@ -25,6 +49,7 @@ func get() gin.HandlerFunc {
 		envs, err := env.QueryEnv(ctx.Query("searchValue"))
 		if err != nil {
 			ctx.JSON(503, res.Err(503, err))
+			return
 		}
 		ctx.JSON(200, res.Ok(envs))
 	}
