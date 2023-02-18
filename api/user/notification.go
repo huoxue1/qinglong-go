@@ -29,6 +29,7 @@ func putNotification() gin.HandlerFunc {
 			ctx.JSON(403, res.Err(403, err))
 			return
 		}
+		_ = os.MkdirAll(path.Join("data", "config"), 0666)
 		err = notification.HandlePush(string(data))
 		if err != nil {
 			ctx.JSON(503, res.Err(503, err))

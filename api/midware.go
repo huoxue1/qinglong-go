@@ -20,6 +20,7 @@ var (
 		"/api/user/login",
 		"/api/user/init",
 		"api/public/panel/log",
+		"/api/user/notification/init",
 	}
 )
 
