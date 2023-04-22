@@ -14,4 +14,5 @@ type AuthFile struct {
 	Lastaddr            string `json:"lastaddr"`
 	Platform            string `json:"platform"`
 	IsTwoFactorChecking bool   `json:"isTwoFactorChecking"`
+	TwoFactorSecret     string `json:"twoFactorSecret"`
 }

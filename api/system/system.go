@@ -2,11 +2,10 @@ package system
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/huoxue1/qinglong-go/internal/auth"
+	"github.com/huoxue1/qinglong-go/internal/res"
 	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/service/system"
-	"github.com/huoxue1/qinglong-go/utils/res"
-	"os"
-	"path"
 )
 
 func Api(group *gin.RouterGroup) {
@@ -15,10 +14,9 @@ func Api(group *gin.RouterGroup) {
 
 func get() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		_, err := os.Stat(path.Join("data", "config", "auth.json"))
-		exist := os.IsNotExist(err)
+
 		ctx.JSON(200, res.Ok(system.System{
-			IsInitialized:  !exist,
+			IsInitialized:  auth.IsInit(),
 			Version:        config.GetVersion(),
 			LastCommitTime: "",
 			LastCommitId:   "",

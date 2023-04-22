@@ -3,7 +3,8 @@ package utils
 // jwt身份验证demo
 
 import (
-	"github.com/dgrijalva/jwt-go"
+	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"math/rand"
 	"strings"
 	"time"
@@ -12,45 +13,44 @@ import (
 // 设置jwt密钥secret
 var jwtSecret = []byte("qinglong")
 
-type Claims struct {
-	UserID string `json:"userid"`
-	jwt.StandardClaims
-}
-
 // GenerateToken 生成token的函数
 func GenerateToken(userid string, hour int) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(time.Duration(hour) * time.Hour)
 
-	claims := Claims{
-		userid, // 自行添加的信息
-		jwt.StandardClaims{
-			ExpiresAt: expireTime.Unix(), // 设置token过期时间
-			Issuer:    "gin-blog",        // 设置jwt签发者
-		},
-	}
 	// 生成token
-	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userid": userid,
+		"exp":    expireTime.Unix(),
+		"iat":    nowTime.Unix(),
+		"issuer": "qinglong-go",
+	})
 	token, err := tokenClaims.SignedString(jwtSecret)
 
 	return token, err
 }
 
 // ParseToken 验证token的函数
-func ParseToken(token string) (*Claims, error) {
+func ParseToken(token string) (string, int64, error) {
 	// 对token的密钥进行验证
-	tokenClaims, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	tokenClaims, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
 		return jwtSecret, nil
 	})
-
-	// 判断token是否过期
+	if err != nil {
+		return "", 0, err
+	}
 	if tokenClaims != nil {
-		if claims, ok := tokenClaims.Claims.(*Claims); ok && tokenClaims.Valid {
-			return claims, nil
+		if claims, ok := tokenClaims.Claims.(jwt.MapClaims); ok && tokenClaims.Valid {
+			return claims["userid"].(string), int64(claims["exp"].(float64)), nil
 		}
 	}
 
-	return nil, err
+	return "", 0, err
 }
 
 func IsMobile(userAgent string) bool {

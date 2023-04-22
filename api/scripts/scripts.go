@@ -3,8 +3,8 @@ package scripts
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/huoxue1/qinglong-go/internal/res"
 	"github.com/huoxue1/qinglong-go/service/scripts"
-	"github.com/huoxue1/qinglong-go/utils/res"
 	"os"
 	path2 "path"
 )

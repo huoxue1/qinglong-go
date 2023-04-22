@@ -3,8 +3,8 @@ package user
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/huoxue1/qinglong-go/internal/res"
 	"github.com/huoxue1/qinglong-go/service/notification"
-	"github.com/huoxue1/qinglong-go/utils/res"
 	"os"
 	"path"
 )

@@ -15,7 +15,7 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/local/go/bin:/usr/sbin:/usr/bin:/sb
 
 WORKDIR ${QL_DIR}
 
-COPY --from=golang:1.18-alpine /usr/local/go/ /usr/local/go/
+COPY --from=golang:1.20-alpine /usr/local/go/ /usr/local/go/
 
 RUN set -x \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \

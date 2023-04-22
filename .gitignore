@@ -1,7 +1,9 @@
-/data/
+/data/**
 /.idea/
 /static/
 *.exe
 *.log
 
 /dist/
+/data/
+/ql/

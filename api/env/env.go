@@ -3,9 +3,9 @@ package env
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/huoxue1/qinglong-go/internal/res"
 	"github.com/huoxue1/qinglong-go/models"
 	"github.com/huoxue1/qinglong-go/service/env"
-	"github.com/huoxue1/qinglong-go/utils/res"
 	"io"
 	"strconv"
 	"time"

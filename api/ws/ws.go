@@ -3,8 +3,8 @@ package ws
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/huoxue1/qinglong-go/internal/res"
 	"github.com/huoxue1/qinglong-go/service/client"
-	"github.com/huoxue1/qinglong-go/utils/res"
 	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
 	"time"

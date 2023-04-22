@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/huoxue1/qinglong-go/utils/res"
+	"github.com/huoxue1/qinglong-go/internal/res"
 	"os"
 )
 
