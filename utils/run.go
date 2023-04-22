@@ -3,8 +3,8 @@ package utils
 import (
 	"context"
 	"fmt"
+	log "github.com/huoxue1/go-utils/base/log"
 	"github.com/huoxue1/qinglong-go/service/config"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"os/exec"

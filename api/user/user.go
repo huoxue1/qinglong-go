@@ -15,9 +15,6 @@ import (
 	"time"
 )
 
-//go:embed config_sample.sh
-var sample []byte
-
 //go:embed package_sample.json
 var pack []byte
 
@@ -211,7 +208,6 @@ func appInit() gin.HandlerFunc {
 			ctx.JSON(400, res.Err(400, errors.New("the app is initialized")))
 			return
 		}
-		_ = os.MkdirAll(path.Join("data", "config"), 0666)
 		_ = os.MkdirAll(path.Join("data", "deps"), 0666)
 		_ = os.Link(path.Join("data", "deps"), path.Join("data", "scripts", "deps"))
 		_ = os.MkdirAll(path.Join("data", "log"), 0666)
@@ -219,9 +215,8 @@ func appInit() gin.HandlerFunc {
 		_ = os.MkdirAll(path.Join("data", "scripts"), 0666)
 		_ = os.MkdirAll(path.Join("data", "deps"), 0666)
 		_ = os.MkdirAll(path.Join("data", "raw"), 0666)
-		_ = os.WriteFile(path.Join("data", "config", "config.sh"), sample, 0666)
 		_ = os.WriteFile(path.Join("data", "scripts", "package.json"), pack, 0666)
-		_ = os.WriteFile(path.Join("data", "config", "config.sample.sh"), sample, 0666)
+
 		type Req struct {
 			UserName string `json:"username"`
 			Password string `json:"password"`

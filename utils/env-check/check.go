@@ -3,9 +3,9 @@ package env_check
 import (
 	"fmt"
 	"github.com/dablelv/go-huge-util/zip"
+	log "github.com/huoxue1/go-utils/base/log"
 	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/utils"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"strings"
 )

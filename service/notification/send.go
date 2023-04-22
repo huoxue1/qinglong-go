@@ -3,7 +3,7 @@ package notification
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	log "github.com/huoxue1/go-utils/base/log"
 	"github.com/tidwall/gjson"
 	"net/http"
 	"net/url"

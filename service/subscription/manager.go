@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	log "github.com/huoxue1/go-utils/base/log"
 	"github.com/huoxue1/qinglong-go/internal/cron-manager"
 	"github.com/huoxue1/qinglong-go/models"
 	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/service/cron"
 	"github.com/huoxue1/qinglong-go/utils"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"os/exec"
@@ -26,7 +26,7 @@ var (
 	manager sync.Map
 )
 
-func init() {
+func InitSub() {
 	log.Infoln("开始初始化订阅任务定时！")
 	subscriptions, err := models.QuerySubscription("")
 	if err != nil {

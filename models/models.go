@@ -1,8 +1,8 @@
 package models
 
 import (
-	log2 "github.com/huoxue1/qinglong-go/utils/log"
-	log "github.com/sirupsen/logrus"
+	"github.com/huoxue1/go-utils/base/log"
+	xLog "github.com/huoxue1/go-utils/base/log/xorm"
 	_ "modernc.org/sqlite"
 	"os"
 	"xorm.io/xorm"
@@ -12,7 +12,7 @@ var (
 	engine *xorm.Engine
 )
 
-func init() {
+func InitModels() {
 	_ = os.MkdirAll("data/db", 0666)
 	en, err := xorm.NewEngine("sqlite", "data/db/database.sqlite")
 	if err != nil {
@@ -20,7 +20,6 @@ func init() {
 		return
 	}
 	_ = en.Sync2(new(Apps), new(Auths), new(Crontabs), new(Crontabviews), new(Dependences), new(Envs), new(Subscriptions))
-	en.ShowSQL(true)
-	en.SetLogger(new(log2.MyLog))
+	en.SetLogger(xLog.GetXormLogger(log.StandardLogger(), "info", false))
 	engine = en
 }

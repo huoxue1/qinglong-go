@@ -1,8 +1,8 @@
 package cache
 
 import (
+	log "github.com/huoxue1/go-utils/base/log"
 	"github.com/nutsdb/nutsdb"
-	log "github.com/sirupsen/logrus"
 	"sync"
 )
 

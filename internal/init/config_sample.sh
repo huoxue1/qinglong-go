@@ -72,6 +72,9 @@ ShCmd="bash"
 # 运行以python依赖的命令
 PipCmd="pip"
 
+
+LogLevel="info"
+
 ## 通知环境变量
 ## 1. Server酱
 ## https://sct.ftqq.com

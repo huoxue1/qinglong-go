@@ -1,8 +1,8 @@
 package env
 
 import (
+	log "github.com/huoxue1/go-utils/base/log"
 	"github.com/huoxue1/qinglong-go/models"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"regexp"
 	"time"

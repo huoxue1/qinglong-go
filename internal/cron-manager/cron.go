@@ -2,7 +2,6 @@ package cron_manager
 
 import (
 	"errors"
-	"github.com/huoxue1/qinglong-go/utils/log"
 	"github.com/robfig/cron/v3"
 	"sync"
 )
@@ -18,7 +17,7 @@ type mapValue struct {
 }
 
 func init() {
-	SixCron = cron.New(cron.WithChain(cron.Recover(&log.CronLog{})), cron.WithParser(
+	SixCron = cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)), cron.WithParser(
 		cron.NewParser(cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor)))
 	SixCron.Start()
 }

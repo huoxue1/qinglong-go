@@ -1,7 +1,7 @@
 package utils
 
 import (
-	log "github.com/sirupsen/logrus"
+	log "github.com/huoxue1/go-utils/base/log"
 	"io"
 	"net/http"
 	"os"

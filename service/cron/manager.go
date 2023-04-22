@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	log "github.com/huoxue1/go-utils/base/log"
 	"github.com/huoxue1/qinglong-go/internal/cron-manager"
 	"github.com/huoxue1/qinglong-go/models"
 	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/service/env"
 	"github.com/huoxue1/qinglong-go/utils"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"os/exec"
@@ -25,11 +25,6 @@ var (
 	execManager sync.Map
 )
 
-func init() {
-	initTask()
-	models.SetAllCornStop()
-}
-
 type task struct {
 	cmd   string
 	isNow bool
@@ -38,7 +33,7 @@ type task struct {
 	dir   string
 }
 
-func initTask() {
+func InitTask() {
 	enableCrons := models.FindAllEnableCron()
 	for _, c := range enableCrons {
 		AddTask(c)

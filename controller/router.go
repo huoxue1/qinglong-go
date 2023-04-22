@@ -13,7 +13,7 @@ func Router() *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Logger())
 	engine.Use(gin.Recovery())
-	engine.Use(gzip.Gzip(gzip.DefaultCompression))
+	engine.Use(gzip.Gzip(gzip.BestSpeed))
 	engine.Use(static.Serve("/", static.LocalFile("static/dist/", false)))
 	engine.NoRoute(func(ctx *gin.Context) {
 		accept := ctx.Request.Header.Get("Accept")

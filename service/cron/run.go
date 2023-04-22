@@ -4,8 +4,8 @@ import (
 	"github.com/huoxue1/qinglong-go/utils"
 	"os"
 
+	log "github.com/huoxue1/go-utils/base/log"
 	"github.com/panjf2000/ants/v2"
-	log "github.com/sirupsen/logrus"
 )
 
 func init() {
