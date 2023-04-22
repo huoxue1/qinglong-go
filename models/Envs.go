@@ -6,13 +6,13 @@ import (
 )
 
 type Envs struct {
-	Id          int       `xorm:"pk autoincr INTEGER" json:"id,omitempty"`
-	Value       string    `xorm:"TEXT" json:"value,omitempty"`
-	Timestamp   string    `xorm:"TEXT" json:"timestamp,omitempty"`
-	Status      int       `xorm:"TINYINT(1)" json:"status,omitempty"`
-	Position    string    `xorm:"TINYINT(1)" json:"position,omitempty"`
-	Name        string    `xorm:"TEXT" json:"name,omitempty"`
-	Remarks     string    `xorm:"TEXT" json:"remarks,omitempty"`
+	Id          int       `xorm:"pk autoincr INTEGER" json:"id"`
+	Value       string    `xorm:"TEXT" json:"value"`
+	Timestamp   string    `xorm:"TEXT" json:"timestamp"`
+	Status      int       `xorm:"TINYINT(1)" json:"status"`
+	Position    string    `xorm:"TINYINT(1)" json:"position"`
+	Name        string    `xorm:"TEXT" json:"name"`
+	Remarks     string    `xorm:"TEXT" json:"remarks"`
 	Createdat   time.Time `xorm:"not null DATETIME created" json:"createdAt"`
 	Updatedat   time.Time `xorm:"not null DATETIME updated" json:"updatedAt"`
 	SerialIndex int64     `xorm:"serial_index INTEGER" json:"serialIndex"`
