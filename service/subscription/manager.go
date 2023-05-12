@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/google/uuid"
 	log "github.com/huoxue1/go-utils/base/log"
 	"github.com/huoxue1/qinglong-go/internal/cron-manager"
@@ -11,9 +14,7 @@ import (
 	"github.com/huoxue1/qinglong-go/service/config"
 	"github.com/huoxue1/qinglong-go/service/cron"
 	"github.com/huoxue1/qinglong-go/utils"
-	"io"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -137,32 +138,24 @@ func addRawFiles(subscriptions *models.Subscriptions) {
 
 func downloadPublicRepo(subscriptions *models.Subscriptions) error {
 	subscriptions.LogPath = "data/log/" + time.Now().Format("2006-01-02") + "/" + subscriptions.Alias + "_" + uuid.New().String() + ".log"
+	subscriptions.Status = 1
+	_ = models.UpdateSubscription(subscriptions)
 	_ = os.MkdirAll(filepath.Dir(subscriptions.LogPath), 0666)
-	cmd := fmt.Sprintf("clone -b %s --single-branch %s %s", subscriptions.Branch, subscriptions.Url, path.Join("data", "repo", subscriptions.Alias))
-	command := exec.Command("git", strings.Split(cmd, " ")...)
-	pipe, err := command.StdoutPipe()
-	stderrPipe, _ := command.StderrPipe()
-	if err != nil {
-		return err
-	}
-	subscriptions.Status = 0
-	err = models.UpdateSubscription(subscriptions)
-	if err != nil {
-		return err
-	}
 	file, _ := os.OpenFile(subscriptions.LogPath, os.O_CREATE|os.O_RDWR, 0666)
-	file.Write([]byte(fmt.Sprintf("##开始执行..  %s\n\n", time.Now().Format("2006-01-02 15:04:05"))))
-	err = command.Start()
+	_, _ = file.Write([]byte(fmt.Sprintf("##开始执行..  %s\n\n", time.Now().Format("2006-01-02 15:04:05"))))
+
+	_, err := git.PlainClone(path.Join("data", "repo", subscriptions.Alias), false, &git.CloneOptions{
+		URL:           subscriptions.Url,
+		SingleBranch:  true,
+		ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", subscriptions.Branch)),
+		Progress:      file,
+		ProxyOptions:  transport.ProxyOptions{URL: config.GetKey("ProxyUrl", "")},
+	})
 	if err != nil {
+		_, _ = file.Write([]byte(fmt.Sprintf("err:  %s", err.Error())))
 		return err
 	}
-	manager.Store(subscriptions.Id, func() {
-		command.Process.Kill()
-	})
 
-	go io.Copy(io.MultiWriter(file, os.Stdout), pipe)
-	go io.Copy(file, stderrPipe)
-	command.Wait()
 	return err
 }
 
