@@ -2,14 +2,15 @@ package api
 
 import (
 	"errors"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/huoxue1/qinglong-go/internal/auth"
 	"github.com/huoxue1/qinglong-go/internal/res"
 	"github.com/huoxue1/qinglong-go/models"
 	"github.com/huoxue1/qinglong-go/utils"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var (
@@ -20,6 +21,7 @@ var (
 		"api/public/panel/log",
 		"/api/user/notification/init",
 		"/api/user/two-factor/login",
+		"/api/server",
 	}
 )
 

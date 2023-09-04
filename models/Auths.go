@@ -5,7 +5,7 @@ import (
 )
 
 type Auths struct {
-	Id        int       `xorm:"pk autoincr INTEGER"`
+	Id        int       `xorm:"pk autoincr int"`
 	Ip        string    `xorm:"VARCHAR(255)"`
 	Type      string    `xorm:"VARCHAR(255)"`
 	Info      string    `xorm:"JSON"`

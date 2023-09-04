@@ -12,13 +12,13 @@ const (
 )
 
 type Dependences struct {
-	Id        int       `xorm:"pk autoincr INTEGER" json:"id,omitempty"`
-	Name      string    `xorm:"TEXT" json:"name,omitempty"`
-	Type      int       `xorm:"INTEGER" json:"type,omitempty"`
-	Timestamp string    `xorm:"TEXT" json:"timestamp,omitempty"`
-	Status    int       `xorm:"INTEGER" json:"status,omitempty"`
-	Log       []string  `xorm:"JSON" json:"log,omitempty"`
-	Remark    string    `xorm:"TEXT" json:"remark,omitempty"`
+	Id        int       `xorm:"pk autoincr INTEGER" json:"id"`
+	Name      string    `json:"name"`
+	Type      int       `xorm:"INTEGER" json:"type"`
+	Timestamp string    `json:"timestamp"`
+	Status    int       `xorm:"INTEGER" json:"status"`
+	Log       []string  `xorm:"JSON" json:"log"`
+	Remark    string    `json:"remark"`
 	Createdat time.Time `xorm:"not null DATETIME created" json:"createdAt"`
 	Updatedat time.Time `xorm:"not null DATETIME updated" json:"updatedAt"`
 }

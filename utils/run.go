@@ -3,12 +3,13 @@ package utils
 import (
 	"context"
 	"fmt"
-	log "github.com/huoxue1/go-utils/base/log"
-	"github.com/huoxue1/qinglong-go/service/config"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/huoxue1/go-utils/base/log"
+	"github.com/huoxue1/qinglong-go/service/config"
 )
 
 type Context struct {
@@ -105,7 +106,10 @@ func RunWithOption(ctx context.Context, option *RunOption) {
 		}
 		ch <- 1
 	}()
-	cancel := ctx.Value("cancel").(chan int)
+	cancel, ok := ctx.Value("cancel").(chan int)
+	if ok {
+		cancel = make(chan int)
+	}
 	select {
 	case <-ch:
 		{

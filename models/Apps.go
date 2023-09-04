@@ -1,7 +1,7 @@
 package models
 
 type Apps struct {
-	Id           int      `xorm:"pk autoincr INTEGER" json:"id,omitempty"`
+	Id           int      `xorm:"pk autoincr int" json:"id,omitempty"`
 	Name         string   `xorm:"TEXT unique" json:"name,omitempty"`
 	Scopes       []string `xorm:"JSON" json:"scopes,omitempty"`
 	ClientId     string   `xorm:"TEXT" json:"client_id,omitempty"`

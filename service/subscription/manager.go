@@ -4,16 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/google/uuid"
-	log "github.com/huoxue1/go-utils/base/log"
-	"github.com/huoxue1/qinglong-go/internal/cron-manager"
-	"github.com/huoxue1/qinglong-go/models"
-	"github.com/huoxue1/qinglong-go/service/config"
-	"github.com/huoxue1/qinglong-go/service/cron"
-	"github.com/huoxue1/qinglong-go/utils"
 	"os"
 	"path"
 	"path/filepath"
@@ -21,6 +11,16 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/huoxue1/go-utils/base/log"
+	"github.com/huoxue1/qinglong-go/internal/cron-manager"
+	"github.com/huoxue1/qinglong-go/models"
+	"github.com/huoxue1/qinglong-go/service/config"
+	"github.com/huoxue1/qinglong-go/service/cron"
+	"github.com/huoxue1/qinglong-go/utils"
 )
 
 var (
@@ -96,10 +96,6 @@ func downloadFiles(subscriptions *models.Subscriptions) {
 }
 
 func addRawFiles(subscriptions *models.Subscriptions) {
-	subscriptions.LogPath = "data/log/" + time.Now().Format("2006-01-02") + "/" + subscriptions.Alias + "_" + uuid.New().String() + ".log"
-	subscriptions.Status = 0
-	file, _ := os.OpenFile(subscriptions.LogPath, os.O_CREATE|os.O_RDWR, 0666)
-	defer file.Close()
 	_ = models.UpdateSubscription(subscriptions)
 	defer func() {
 		subscriptions.Status = 1
@@ -107,19 +103,19 @@ func addRawFiles(subscriptions *models.Subscriptions) {
 	}()
 	err := utils.DownloadFile(subscriptions.Url, path.Join("data", "raw", subscriptions.Alias))
 	if err != nil {
-		_, _ = file.WriteString(err.Error() + "\n")
+		_, _ = subscriptions.WriteString(err.Error() + "\n")
 		return
 	}
 	name, c, err := getSubCron(path.Join("data", "raw", subscriptions.Alias))
 	if err != nil {
-		_, _ = file.WriteString(err.Error() + "\n")
+		_, _ = subscriptions.WriteString(err.Error() + "\n")
 		return
 	}
 	utils.Copy(path.Join("data", "raw", subscriptions.Alias), path.Join("data", "scripts", subscriptions.Alias))
 	if c != "" {
 		command, err := models.GetCronByCommand(fmt.Sprintf("task %s", subscriptions.Alias))
 		if err != nil {
-			file.WriteString("已添加新的定时任务  " + name + "\n")
+			subscriptions.WriteString("已添加新的定时任务  " + name + "\n")
 			_, _ = cron.AddCron(&models.Crontabs{
 				Name:      name,
 				Command:   fmt.Sprintf("task %s", subscriptions.Alias),
@@ -137,22 +133,18 @@ func addRawFiles(subscriptions *models.Subscriptions) {
 }
 
 func downloadPublicRepo(subscriptions *models.Subscriptions) error {
-	subscriptions.LogPath = "data/log/" + time.Now().Format("2006-01-02") + "/" + subscriptions.Alias + "_" + uuid.New().String() + ".log"
-	subscriptions.Status = 1
-	_ = models.UpdateSubscription(subscriptions)
-	_ = os.MkdirAll(filepath.Dir(subscriptions.LogPath), 0666)
-	file, _ := os.OpenFile(subscriptions.LogPath, os.O_CREATE|os.O_RDWR, 0666)
-	_, _ = file.Write([]byte(fmt.Sprintf("##开始执行..  %s\n\n", time.Now().Format("2006-01-02 15:04:05"))))
+
+	_, _ = subscriptions.Write([]byte(fmt.Sprintf("##开始执行..  %s\n\n", time.Now().Format("2006-01-02 15:04:05"))))
 
 	_, err := git.PlainClone(path.Join("data", "repo", subscriptions.Alias), false, &git.CloneOptions{
 		URL:           subscriptions.Url,
 		SingleBranch:  true,
 		ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", subscriptions.Branch)),
-		Progress:      file,
+		Progress:      subscriptions,
 		ProxyOptions:  transport.ProxyOptions{URL: config.GetKey("ProxyUrl", "")},
 	})
 	if err != nil {
-		_, _ = file.Write([]byte(fmt.Sprintf("err:  %s", err.Error())))
+		_, _ = subscriptions.Write([]byte(fmt.Sprintf("err:  %s", err.Error())))
 		return err
 	}
 
@@ -161,8 +153,6 @@ func downloadPublicRepo(subscriptions *models.Subscriptions) error {
 
 func addScripts(subscriptions *models.Subscriptions) {
 	depFiles := getDepFiles()
-	file, _ := os.OpenFile(subscriptions.LogPath, os.O_RDWR|os.O_APPEND, 0666)
-	defer file.Close()
 	var extensions []string
 	if subscriptions.Extensions != "" {
 		extensions = strings.Split(subscriptions.Extensions, " ")
@@ -209,10 +199,10 @@ func addScripts(subscriptions *models.Subscriptions) {
 						Labels:    []string{},
 					})
 					if err1 != nil {
-						file.WriteString("定时任务添加失败： " + name + " " + err1.Error())
-						err1 = nil
+						_, _ = subscriptions.WriteString("定时任务添加失败： " + name + " " + err1.Error())
+
 					} else {
-						file.WriteString("已添加新的定时任务  " + name + "\n")
+						_, _ = subscriptions.WriteString("已添加新的定时任务  " + name + "\n")
 					}
 				} else {
 					command.Name = name
@@ -230,18 +220,18 @@ func addScripts(subscriptions *models.Subscriptions) {
 			}
 		}
 		if utils.In(entry.Name(), depFiles) {
-			file.WriteString("已替换依赖文件： " + entry.Name() + "\n")
+			subscriptions.WriteString("已替换依赖文件： " + entry.Name() + "\n")
 			utils.Copy(path.Join("data", "deps", entry.Name()), path.Join("data", "scripts", subscriptions.Alias, entry.Name()))
 		}
 	}
 	if config.GetKey("AutoDelCron", "true") == "true" {
 		for _, m := range cronMap {
-			file.WriteString("已删除失效的任务 " + m.Name + "\n")
+			subscriptions.WriteString("已删除失效的任务 " + m.Name + "\n")
 			models.DeleteCron(m.Id)
 		}
 	}
 	if isGoMod {
-		file.WriteString("检测到go模块，开始自动下载golang依赖!!")
+		subscriptions.WriteString("检测到go模块，开始自动下载golang依赖!!")
 		cancelChan := make(chan int, 1)
 		ctx := context.WithValue(context.Background(), "cancel", cancelChan)
 		utils.RunWithOption(ctx, &utils.RunOption{
@@ -253,7 +243,7 @@ func addScripts(subscriptions *models.Subscriptions) {
 			OnEnd: func(ctx context.Context) {
 
 			},
-			LogFile: file,
+			LogFile: subscriptions,
 			CmdDir:  path.Join("data", "scripts", subscriptions.Alias),
 		})
 	}

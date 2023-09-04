@@ -24,7 +24,7 @@ func GetKey(key, defaultValue string) string {
 }
 
 func GetVersion() string {
-	return VERSION
+	return strings.TrimPrefix(VERSION, "v")
 }
 
 var address string

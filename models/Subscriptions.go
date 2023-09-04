@@ -2,33 +2,67 @@ package models
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/google/uuid"
 	"xorm.io/builder"
 )
 
 type Subscriptions struct {
 	Id               int            `xorm:"pk autoincr INTEGER" json:"id"`
-	Name             string         `xorm:"TEXT" json:"name"`
-	Url              string         `xorm:"TEXT" json:"url"`
-	Schedule         string         `xorm:"TEXT" json:"schedule"`
+	Name             string         `json:"name"`
+	Url              string         `json:"url"`
+	Schedule         string         `json:"schedule"`
 	IntervalSchedule map[string]any `xorm:"JSON" json:"interval_schedule"`
-	Type             string         `xorm:"TEXT" json:"type"`
-	Whitelist        string         `xorm:"TEXT" json:"whitelist"`
-	Blacklist        string         `xorm:"TEXT" json:"blacklist"`
+	Type             string         `json:"type"`
+	Whitelist        string         `json:"whitelist"`
+	Blacklist        string         `json:"blacklist"`
 	Status           int            `xorm:"INTEGER default(1)" json:"status"`
-	Dependences      string         `xorm:"TEXT" json:"dependences"`
-	Extensions       string         `xorm:"TEXT" json:"extensions"`
-	SubBefore        string         `xorm:"TEXT" json:"sub_before"`
-	SubAfter         string         `xorm:"TEXT" json:"sub_after"`
-	Branch           string         `xorm:"TEXT" json:"branch"`
-	PullType         string         `xorm:"TEXT" json:"pull_type"`
+	Dependences      string         `json:"dependences"`
+	Extensions       string         `json:"extensions"`
+	SubBefore        string         `json:"sub_before"`
+	SubAfter         string         `json:"sub_after"`
+	Branch           string         `json:"branch"`
+	PullType         string         `json:"pull_type"`
 	PullOption       string         `xorm:"JSON" json:"pull_option"`
 	Pid              int            `xorm:"INTEGER" json:"pid"`
 	IsDisabled       int            `xorm:"INTEGER" json:"is_disabled"`
-	LogPath          string         `xorm:"TEXT" json:"log_path"`
-	ScheduleType     string         `xorm:"TEXT" json:"schedule_type"`
-	Alias            string         `xorm:"TEXT unique" json:"alias"`
+	LogPath          string         `json:"log_path"`
+	ScheduleType     string         `json:"schedule_type"`
+	Alias            string         `xorm:"varchar(255) unique" json:"alias"`
 	Createdat        string         `xorm:"not null DATETIME created" json:"createdat"`
 	Updatedat        string         `xorm:"not null DATETIME updated" json:"updatedat"`
+
+	File io.WriteCloser `json:"-" xorm:"-"`
+}
+
+func (s *Subscriptions) Close() error {
+	return s.File.Close()
+}
+
+func (s *Subscriptions) Write(p []byte) (n int, err error) {
+	if s.File == nil {
+		s.LogPath = "data/log/" + time.Now().Format("2006-01-02") + "/" + s.Alias + "_" + uuid.New().String() + ".log"
+		s.Status = 1
+		_ = UpdateSubscription(s)
+		_ = os.MkdirAll(filepath.Dir(s.LogPath), 0666)
+		s.File, _ = os.OpenFile(s.LogPath, os.O_CREATE|os.O_RDWR, 0666)
+	}
+	return s.File.Write(p)
+}
+func (s *Subscriptions) WriteString(data string) (n int, err error) {
+	p := []byte(data)
+	if s.File == nil {
+		s.LogPath = "data/log/" + time.Now().Format("2006-01-02") + "/" + s.Alias + "_" + uuid.New().String() + ".log"
+		s.Status = 1
+		_ = UpdateSubscription(s)
+		_ = os.MkdirAll(filepath.Dir(s.LogPath), 0666)
+		s.File, _ = os.OpenFile(s.LogPath, os.O_CREATE|os.O_RDWR, 0666)
+	}
+	return s.File.Write(p)
 }
 
 func QuerySubscription(searchValue string) ([]*Subscriptions, error) {

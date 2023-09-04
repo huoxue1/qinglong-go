@@ -9,6 +9,7 @@ import (
 	"github.com/huoxue1/qinglong-go/api/logs"
 	"github.com/huoxue1/qinglong-go/api/open"
 	"github.com/huoxue1/qinglong-go/api/scripts"
+	"github.com/huoxue1/qinglong-go/api/server"
 	"github.com/huoxue1/qinglong-go/api/subscription"
 	"github.com/huoxue1/qinglong-go/api/system"
 )
@@ -24,4 +25,5 @@ func Open(group *gin.RouterGroup) {
 	subscription.Api(group.Group("/subscriptions"))
 	logs.APi(group.Group("/logs"))
 	dependencies.Api(group.Group("/dependencies"))
+	server.Api(group.Group("/server"))
 }

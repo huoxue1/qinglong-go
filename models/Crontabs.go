@@ -6,7 +6,7 @@ import (
 )
 
 type Crontabs struct {
-	Id                int      `xorm:"pk autoincr INTEGER" json:"id"`
+	Id                int      `xorm:"pk autoincr int" json:"id"`
 	Name              string   `xorm:"VARCHAR(255)" json:"name"`
 	Command           string   `xorm:"VARCHAR(255)" json:"command"`
 	Schedule          string   `xorm:"VARCHAR(255)" json:"schedule"`
@@ -19,10 +19,10 @@ type Crontabs struct {
 	Ispinned          int      `xorm:"TINYINT(1)" json:"isPinned"`
 	LogPath           string   `xorm:"VARCHAR(255)" json:"log_path"`
 	Labels            []string `xorm:"JSON" json:"labels"`
-	LastRunningTime   int64    `xorm:"NUMBER" json:"last_running_time"`
-	LastExecutionTime int64    `xorm:"NUMBER" json:"last_execution_time"`
-	Createdat         string   `xorm:"not null TEXT created" json:"createdAt"`
-	Updatedat         string   `xorm:"not null TEXT updated" json:"updatedAt"`
+	LastRunningTime   int64    `xorm:"int" json:"last_running_time"`
+	LastExecutionTime int64    `xorm:"int" json:"last_execution_time"`
+	Createdat         string   `xorm:"not null varchar(25) created" json:"createdAt"`
+	Updatedat         string   `xorm:"not null varchar(25) updated" json:"updatedAt"`
 }
 
 func QueryCron(page int, size int, searchValue string, orderField string, orderType string) ([]*Crontabs, error) {
